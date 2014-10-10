@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+
+if { test -r /var/run/ntpd.pid } rm -f /var/run/ntpd.pid

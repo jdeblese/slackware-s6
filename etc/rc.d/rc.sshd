@@ -1,6 +1,8 @@
 #!/bin/sh
 # Start/stop/restart the secure shell server:
 
+. /etc/s6-init/s6shfunc
+
 sshd_start() {
   # Create host keys if needed.
   if [ ! -r /etc/ssh/ssh_host_key ]; then
@@ -15,11 +17,11 @@ sshd_start() {
   if [ ! -f /etc/ssh/ssh_host_ecdsa_key ]; then
     /usr/bin/ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
   fi
-  /usr/sbin/sshd
+  s6_start ssh
 }
 
 sshd_stop() {
-  killall sshd
+  s6_stop ssh
 }
 
 sshd_restart() {
@@ -36,8 +38,7 @@ sshd_restart() {
     echo "         any sessions currently in use), run '/etc/rc.d/rc.sshd stop' instead."
     exit 1
   fi
-  sleep 1
-  sshd_start
+  # s6 will automatically restart sshd
 }
 
 case "$1" in

@@ -1,11 +1,12 @@
 #!/bin/sh
 # Start/stop/restart ntpd.
 
+. /etc/s6-init/s6shfunc
+
 # Start ntpd:
 ntpd_start() {
-  CMDLINE="/usr/sbin/ntpd -g"
-  echo -n "Starting NTP daemon:  $CMDLINE"
-  $CMDLINE -p /var/run/ntpd.pid
+  echo -n "Starting NTP daemon..."
+  s6_start ntp
   echo
   # The kernel is now mocking around with the the hardware clock if
   # ntpd is running, so if the hardware clock (wall clock) is set to
@@ -27,20 +28,14 @@ ntpd_start() {
 # Stop ntpd:
 ntpd_stop() {
   echo -n "Stopping NTP daemon..."
-  if [ -r /var/run/ntpd.pid ]; then
-    kill -HUP $(cat /var/run/ntpd.pid)
-    rm -f /var/run/ntpd.pid
-  else
-    killall -HUP -q ntpd
-  fi
-  echo
+  s6_stop ntp
+  echo ""
 }
 
 # Restart ntpd:
 ntpd_restart() {
-  ntpd_stop
-  sleep 1
-  ntpd_start
+  # send TERM signal, s6 will automatically restart
+  s6_signal -t ntp
 }
 
 # Check if ntpd is running
