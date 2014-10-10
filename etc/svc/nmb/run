@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+
+# nmbd reports that stdin is not a socket, but seems to run in foreground anyway
+/usr/sbin/nmbd -FS

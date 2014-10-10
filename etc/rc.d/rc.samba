@@ -8,23 +8,25 @@
 # file executable:  chmod 755 /etc/rc.d/rc.samba
 #
 
+. /etc/s6-init/s6shfunc
+
 samba_start() {
-  if [ -x /usr/sbin/smbd -a -x /usr/sbin/nmbd -a -r /etc/samba/smb.conf ]; then
-    echo "Starting Samba:  /usr/sbin/smbd -D"
-    /usr/sbin/smbd -D
-    echo "                 /usr/sbin/nmbd -D"
-    /usr/sbin/nmbd -D
+  if [ -r /etc/samba/smb.conf ]; then
+    echo "Starting Samba"
+    s6_start smb
+    s6_start nmb
   fi
 }
 
 samba_stop() {
-  killall smbd nmbd
+  s6_stop smb
+  s6_stop nmb
 }
 
 samba_restart() {
-  samba_stop
-  sleep 2
-  samba_start
+  # Send TERM, s6 will restart
+  s6_signal -t smb
+  s6_signal -t nmb
 }
 
 case "$1" in
