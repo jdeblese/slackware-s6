@@ -1,0 +1,15 @@
+#!/command/execlineb -P
+
+# FIXME find some way to get this from a common parameter file
+multisubstitute {
+  define MODE tap
+  define TDEV tap0 }
+
+fdmove -c 2 1
+
+foreground { echo "Removing device ${TDEV}" }
+foreground { ip link set ${TDEV} down }
+foreground { ip tuntap del dev ${TDEV} mode ${MODE} }
+
+redirfd -w 2 /dev/null
+rm /var/run/openvpn.pid

@@ -1,0 +1,17 @@
+#!/command/execlineb -P
+
+multisubstitute {
+  define MODE tap
+  define TDEV tap0 }
+
+fdmove -c 2 1
+
+foreground {
+  ifelse { pipeline { ip tuntap } grep -q ${TDEV} }
+    { ip addr flush ${TDEV} }                 # Device exists, flush addresses
+    ip tuntap add dev ${TDEV} mode ${MODE} }  # Device does not exist, create
+
+foreground { ip link set tap0 up }
+
+# Run with suppressed timestamps, as s6-log will add tai64 stamps
+/usr/sbin/openvpn --writepid /var/run/openvpn.pid --config /etc/openvpn/openvpn.conf --suppress-timestamps
