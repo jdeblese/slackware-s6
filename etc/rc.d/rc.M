@@ -11,6 +11,8 @@
 #		Heavily modified by Patrick Volkerding <volkerdi@slackware.com>
 #
 
+. /etc/s6-init/s6shfunc
+
 # Tell the viewers what's going to happen.
 echo "Going multiuser..."
 
@@ -19,10 +21,6 @@ if [ -x /sbin/ldconfig ]; then
   echo "Updating shared library links:  /sbin/ldconfig &"
   /sbin/ldconfig &
 fi
-
-# Screen blanks after 15 minutes idle time, and powers down in one hour
-# if the kernel supports APM or ACPI power management:
-/bin/setterm -blank 15 -powersave powerdown -powerdown 60
 
 # Set the hostname.
 if [ -r /etc/HOSTNAME ]; then
@@ -266,16 +264,10 @@ if [ -x /sbin/accton -a -r /var/log/pacct ]; then
 fi
 
 # Start crond (Dillon's crond):
-# If you want cron to actually log activity to /var/log/cron, then change
-# -l notice to -l info to increase the logging level.
-if [ -x /usr/sbin/crond ]; then
-  /usr/sbin/crond -l notice
-fi
+s6_start cron
 
 # Start atd (manages jobs scheduled with 'at'):
-if [ -x /usr/sbin/atd ]; then
-  /usr/sbin/atd -b 15 -l 1
-fi
+s6_start at
 
 # Slackware-Mini-Quota-HOWTO:
 # To really activate quotas, you'll need to add 'usrquota' and/or 'grpquota' to

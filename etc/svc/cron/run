@@ -1,0 +1,6 @@
+#!/command/execlineb -P
+
+fdmove -c 2 1
+# If you want cron to actually log activity to /var/log/cron, then change
+# -l notice to -l info to increase the logging level.
+/usr/sbin/crond -f -l notice
