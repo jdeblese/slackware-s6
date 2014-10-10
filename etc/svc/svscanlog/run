@@ -1,0 +1,25 @@
+#!/command/execlineb -P
+
+# Log to /svc, as it will be the only read-write filesystem
+# available when this logger is started
+
+multisubstitute {
+  define UID nobody
+  define GID nogroup
+  define LOG /svc/.catchall
+  define DIR /svc/svscanlog }
+
+redirfd -w 2 /dev/console
+
+foreground {
+  if -n { test -d ${LOG} } 
+    mkdir ${LOG} }
+
+if { chown ${UID}:${GID} ${LOG} }
+
+redirfd -rnb 0 ${DIR}/fifo
+s6-setuidgid ${UID}
+# exec -c
+# -p prevents this logger from ever dying
+# -b prevents the logger from eating too much memory
+/command/s6-log -bpt ${LOG}
