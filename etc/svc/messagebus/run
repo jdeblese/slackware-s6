@@ -1,0 +1,25 @@
+#!/command/execlineb -P
+#
+# messagebus:   The D-BUS systemwide message bus
+#
+# description:  This is a daemon which broadcasts notifications of system events \
+#               and other messages. See http://www.freedesktop.org/software/dbus/
+#
+# processname: dbus-daemon
+# pidfile: /var/run/dbus/pid
+
+# This is a modified version of the rc.messagebus script distributed with the
+# dbus sources.  Thanks to Don Tanner of the GWare <http://gware.org> Project
+# for most of the work involved      --Robby Workman <rworkman@slackware.com>
+
+# Modified further for s6
+
+fdmove -c 2 1 
+
+# Remove PID files and sockets
+foreground { rm -rf /var/run/dbus }
+foreground { mkdir /var/run/dbus }
+
+if { /usr/bin/dbus-uuidgen --ensure }
+/usr/bin/dbus-daemon --system --nofork
+

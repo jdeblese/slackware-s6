@@ -1,0 +1,6 @@
+#!/command/execlineb -P
+
+fdmove -c 2 1
+
+# Remove PID and related files
+rm -r /var/run/ConsoleKit

@@ -12,40 +12,26 @@
 # dbus sources.  Thanks to Don Tanner of the GWare <http://gware.org> Project
 # for most of the work involved      --Robby Workman <rworkman@slackware.com>
 
-
-PIDFILE=/var/run/dbus/dbus.pid
+. /etc/s6-init/s6shfunc
 
 start() {
-  mkdir -p $(dirname $PIDFILE)
-  if ! ps -u messagebus -c | grep -wq dbus-daemon; then
-    rm -f $(dirname $PIDFILE)/*
-    if [ -x /usr/bin/dbus-uuidgen -a -x /usr/bin/dbus-daemon ] ; then
-      echo "Starting system message bus:  /usr/bin/dbus-uuidgen --ensure ; /usr/bin/dbus-daemon --system"
-      /usr/bin/dbus-uuidgen --ensure
-      /usr/bin/dbus-daemon --system 1> /dev/null
-    fi
-  fi
+  echo "Starting system message bus..."
+  s6_start messagebus
 }
 
 stop() {
-  if [ -e "$PIDFILE" ]; then
-    echo "Stopping system message bus..."
-    pid=$(cat $PIDFILE)
-    kill $pid 1> /dev/null 2> /dev/null
-    # Just in case:
-    killall dbus-daemon 1> /dev/null 2> /dev/null
-    rm -f $PIDFILE
-  fi
+  echo "Stopping system message bus..."
+  s6_stop messagebus
+}
+
+restart() {
+  # send TERM, s6 will restart the daemon
+  s6_signal -t messagebus
 }
 
 reload() {
   echo "Reloading system message bus configuration..."
-  if [ -e "$PIDFILE" ]; then
-    pid=$(cat $PIDFILE)
-    kill -HUP $pid
-  else
-    killall -HUP dbus-daemon
-  fi
+  s6_signal -h messagebus  # send HUP
 }
 
 status() {
@@ -65,8 +51,7 @@ case "$1" in
     stop
     ;;
   restart)
-    stop
-    start
+    restart
     echo "You may need to restart your Window Manager to reconnect to the system dbus."
     ;;
   reload)

@@ -6,20 +6,17 @@
 #
 # This daemon is used by polkit's console auth agent.
 
+. /etc/s6-init/s6shfunc
+
 # Start consolekit:
 ck_start() {
-  echo "Starting ConsoleKit daemon:  /usr/sbin/console-kit-daemon"
-  /usr/sbin/console-kit-daemon
+  echo "Starting ConsoleKit daemon..."
+  s6_start consolekit
 }
 
 # Stop consolekit:
 ck_stop() {
-  if [ -r /var/run/ConsoleKit/pid ]; then
-    kill -HUP $(cat /var/run/ConsoleKit/pid)
-    rm -f /var/run/ConsoleKit/pid
-  else
-    killall -HUP -q console-kit-daemon
-  fi
+  s6_stop consolekit
 }
 
 case "$1" in

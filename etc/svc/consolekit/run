@@ -1,0 +1,6 @@
+#!/command/execlineb -P
+
+fdmove -c 2 1
+
+if { s6-svwait -u /svc/messagebus }
+  /usr/sbin/console-kit-daemon --no-daemon
