@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+
+if { test -e /var/run/dnsmasq.pid } rm -f /var/run/dnsmasq.pid

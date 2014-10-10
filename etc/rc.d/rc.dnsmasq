@@ -1,24 +1,22 @@
 #!/bin/sh
 # Start/stop/restart dnsmasq (a small DNS/DHCP server):
 
+. /etc/s6-init/s6shfunc
+
 # Start dnsmasq:
 dnsmasq_start() {
-  if [ -x /usr/sbin/dnsmasq ]; then
-    echo "Starting dnsmasq:  /usr/sbin/dnsmasq"
-    /usr/sbin/dnsmasq
-  fi
+  s6_start dnsmasq
 }
 
 # Stop dnsmasq:
 dnsmasq_stop() {
-  killall dnsmasq
+  s6_stop dnsmasq
 }
 
 # Restart dnsmasq:
 dnsmasq_restart() {
-  dnsmasq_stop
-  sleep 1
-  dnsmasq_start
+  # Send TERM signal, will be restarted automatically
+  s6_signal -t dnsmasq
 }
 
 case "$1" in
