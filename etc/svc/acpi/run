@@ -1,0 +1,11 @@
+#!/command/execlineb -P
+
+# Test for existence of the executable and of /proc/acpi
+ifelse -n { test -d /proc/acpi }
+  { echo "/proc/acpi is missing, cannot start acpid." }
+
+# Copy STDOUT to STDERR
+fdmove -c 2 1
+
+# Exec acpid
+/usr/sbin/acpid -f

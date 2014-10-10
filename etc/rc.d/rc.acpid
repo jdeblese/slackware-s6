@@ -1,21 +1,19 @@
 #!/bin/sh
 # Start/stop/restart acpid.
 
+. /etc/s6-init/s6shfunc
+
 # Start acpid:
 acpid_start() {
-  if [ -x /usr/sbin/acpid -a -d /proc/acpi ]; then
-    echo "Starting ACPI daemon:  /usr/sbin/acpid"
-    /usr/sbin/acpid
+  if [ -d /proc/acpi ]; then
+    echo "Starting ACPI daemon"
+    s6_start acpi
   fi
 }
 
 # Stop acpid:
 acpid_stop() {
-  if [ -r /var/run/acpid.pid ]; then
-    kill $(cat /var/run/acpid.pid)
-  else
-    killall acpid
-  fi
+  s6_stop acpi
 }
 
 # Restart acpid:

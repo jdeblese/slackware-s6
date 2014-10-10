@@ -1,0 +1,6 @@
+#!/command/execlineb -P
+
+# '-c 3' = display level 'error' or higher messages on console
+# '-x' = turn off broken EIP translation
+# '-n' = avoid auto-backgrounding
+/usr/sbin/klogd -n -x -c 3 -f /var/log/klog

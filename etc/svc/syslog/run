@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+
+# '-n' = avoid auto-backgrounding
+/usr/sbin/syslogd -n

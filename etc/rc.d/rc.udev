@@ -6,9 +6,12 @@
 PATH="/sbin:/bin"
 
 . /etc/udev/udev.conf
+. /etc/s6-init/s6shfunc
 
 # remove trailing slash from udev_root
 UDEV_ROOT=$(echo "${udev_root}" |sed 's/\/*$//')
+S6_SVC=/svc
+S6_SRC=/etc/svc
 
 check_mounted() {
   grep -E -q "^[^[:space:]]+ $1 $2" /proc/mounts
@@ -103,8 +106,9 @@ case "$1" in
 	mount_devpts
 
         if ! /sbin/pidof udevd 1>/dev/null 2>/dev/null; then # start udevd
-          echo "Starting udevd:  /sbin/udevd --daemon"
-          /sbin/udevd --daemon
+          echo "Starting udevd"
+          s6_start udev
+          s6_wait -u udev  # Wait for udev to be up
           # Since udev is just now being started we want to use add events:
           echo "Triggering udev events:  /sbin/udevadm trigger --action=add"
           # Call udevtrigger and udevsettle to do the device configuration:
@@ -142,6 +146,7 @@ case "$1" in
 	;;
     force-stop)
 	echo "Stopping udevd"
+        s6_signal -O udev  # Do not restart process when it goes down
 	udevadm control --exit
 	killall udevd 2>/dev/null
 	;;
@@ -151,9 +156,10 @@ case "$1" in
 	;;
     force-restart)
 	echo "Restarting udevd"
+        s6_signal -O udev  # Do not restart process when it goes down
 	udevadm control --exit
 	sleep 3
-	udevd --daemon
+	s6_start udev
 	;;
     reload)
 	echo "Reloading udev rules"

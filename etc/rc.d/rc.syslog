@@ -3,29 +3,20 @@
 #
 # Written for Slackware Linux by Patrick J. Volkerding <volkerdi@slackware.com>.
 
+. /etc/s6-init/s6shfunc
+
 syslogd_start() {
-  if [ -x /usr/sbin/syslogd -a -x /usr/sbin/klogd ]; then
-    echo -n "Starting sysklogd daemons:  "
-    echo -n "/usr/sbin/syslogd "
-    /usr/sbin/syslogd
-    # prevent syslogd/klogd race condition on SMP kernels
-    if ps acx | grep -q udevd ; then
-      while [ ! -e /dev/log ] ; do
-        sleep 0
-      done
-    else
-      sleep 1
-    fi
-    echo "/usr/sbin/klogd -c 3 -x"
-    # '-c 3' = display level 'error' or higher messages on console
-    # '-x' = turn off broken EIP translation
-    /usr/sbin/klogd -c 3 -x
-  fi
+  s6_start klog
+  s6_start syslog
+  s6_wait -u klog
+  s6_wait -u syslog
 }
 
 syslogd_stop() {
-  killall syslogd 2> /dev/null
-  killall klogd 2> /dev/null
+  s6_stop klog
+  s6_stop syslog
+  s6_wait -d klog
+  s6_wait -d syslog
 }
 
 syslogd_restart() {
