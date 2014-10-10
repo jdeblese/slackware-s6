@@ -3,7 +3,7 @@
 multisubstitute {
   define LOGDIR /var/log/services/cron
   define UID nobody
-  define GID nobody }
+  define GID nogroup }
 
 umask 077
 
