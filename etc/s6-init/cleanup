@@ -1,0 +1,162 @@
+#!/bin/sh
+#
+# cleanup	This file is executed by init when it goes to shut down
+#		or reboot. It shuts down processes, cleans up the network
+#		and saves the system clock.
+#
+# Based on:	@(#)/etc/rc.d/rc.6	2.47 Sat Jan 13 13:37:26 PST 2001
+#
+# Author:	Miquel van Smoorenburg <miquels@drinkel.nl.mugnet.org>
+# Modified by:  Patrick J. Volkerding, <volkerdi@slackware.com>
+#               Jan-willem De Bleser <jw@thescrapyard.org>
+
+# Set the path.
+PATH=/sbin:/etc:/bin:/usr/bin
+
+# If there are SystemV init scripts for this runlevel, run them.
+if [ -x /etc/rc.d/rc.sysvinit ]; then
+  . /etc/rc.d/rc.sysvinit
+fi
+
+# Save the system time to the hardware clock using hwclock --systohc.
+if [ -x /sbin/hwclock ]; then
+  # Check for a broken motherboard RTC clock (where ioports for rtc are
+  # unknown) to prevent hwclock causing a hang:
+  if ! grep -q -w rtc /proc/ioports ; then
+    CLOCK_OPT="--directisa"
+  fi
+  if grep -q "^UTC" /etc/hardwareclock 2> /dev/null ; then
+    echo "Saving system time to the hardware clock (UTC)."
+    /sbin/hwclock $CLOCK_OPT --utc --systohc
+  else
+    echo "Saving system time to the hardware clock (localtime)."
+    /sbin/hwclock  $CLOCK_OPT --localtime --systohc
+  fi
+fi
+
+# Run any local shutdown scripts:
+if [ -x /etc/rc.d/rc.local_shutdown ]; then
+  /etc/rc.d/rc.local_shutdown stop
+fi
+
+# Stop the Apache web server:
+if [ -x /etc/rc.d/rc.httpd ]; then
+  /etc/rc.d/rc.httpd stop
+fi
+
+# Stop the MySQL database:
+if [ -r /var/run/mysql/mysql.pid ]; then
+  . /etc/rc.d/rc.mysqld stop
+fi
+
+# Stop the Samba server:
+if [ -x /etc/rc.d/rc.samba ]; then
+  . /etc/rc.d/rc.samba stop
+fi
+
+# Shut down the NFS server:
+if [ -x /etc/rc.d/rc.nfsd ]; then
+  /etc/rc.d/rc.nfsd stop
+fi
+
+# Shut down the SSH server:
+if [ -x /etc/rc.d/rc.sshd ]; then
+  /etc/rc.d/rc.sshd stop
+fi
+
+# Shut down the SASL authentication daemon:
+if [ -x /etc/rc.d/rc.saslauthd ]; then
+  /etc/rc.d/rc.saslauthd stop
+fi
+
+# Shut down OpenLDAP:
+if [ -x /etc/rc.d/rc.openldap ]; then
+  /etc/rc.d/rc.openldap stop
+fi
+
+# Stop D-Bus:
+if [ -x /etc/rc.d/rc.messagebus ]; then
+  sh /etc/rc.d/rc.messagebus stop
+fi
+
+# Kill any processes (typically gam) that would otherwise prevent
+# unmounting NFS volumes:
+unset FUSER_DELAY
+for dir in $(/bin/mount | grep 'type nfs' | cut -d ' ' -f 3 ) ; do
+  echo "Killing processes holding NFS mount $dir open..."
+  # Background this to prevent fuser from also blocking shutdown:
+  /usr/bin/fuser -k -m $dir &
+  FUSER_DELAY=5
+done
+# If fuser was run, let it have some delay:
+if [ ! -z "$FUSER_DELAY" ]; then
+  sleep $FUSER_DELAY
+fi
+
+# Unmount any NFS, SMB, or CIFS filesystems:
+echo "Unmounting remote filesystems."
+/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs
+
+# Try to shut down pppd:
+PS="$(ps ax)"
+if echo "$PS" | /bin/grep -q -w pppd ; then
+  if [ -x /usr/sbin/ppp-off ]; then
+    /usr/sbin/ppp-off
+  fi
+fi
+
+# Shut down YP services:
+if [ -x /etc/rc.d/rc.yp ]; then
+  if grep -wq stop /etc/rc.d/rc.yp ; then
+    /etc/rc.d/rc.yp stop
+  fi
+fi
+
+# Bring down the networking system, but first make sure that this
+# isn't a diskless client with the / partition mounted via NFS:
+if ! /bin/mount | /bin/grep -q 'on / type nfs' ; then
+  if [ -x /etc/rc.d/rc.inet1 ]; then
+    . /etc/rc.d/rc.inet1 stop
+  fi
+fi
+
+# In case dhcpcd might have been manually started on the command line,
+# look for the .pid file, and shut dhcpcd down if it's found:
+if /bin/ls /etc/dhcpc/*.pid 1> /dev/null 2> /dev/null ; then
+  /sbin/dhcpcd -k 1> /dev/null 2> /dev/null
+  # A little time for /etc/resolv.conf and/or other files to
+  # restore themselves.
+  sleep 2
+fi
+
+# Shut down PCMCIA devices:
+if [ -x /etc/rc.d/rc.pcmcia ]; then
+  . /etc/rc.d/rc.pcmcia stop
+  # The cards might need a little extra time here to deactivate:
+  /bin/sleep 5
+fi
+
+# Turn off process accounting:
+if [ -x /sbin/accton -a -r /var/log/pacct ]; then
+  /sbin/accton off
+fi
+
+# Terminate acpid before syslog:
+if [ -x /etc/rc.d/rc.acpid -a -r /var/run/acpid.pid ]; then # quit
+  . /etc/rc.d/rc.acpid stop
+fi
+
+# Stop udev:
+if [ -x /etc/rc.d/rc.udev ]; then
+  sh /etc/rc.d/rc.udev force-stop
+fi
+
+# Carry a random seed between reboots.
+echo "Saving random seed from /dev/urandom in /etc/random-seed."
+# Use the pool size from /proc, or 4096 bits:
+if [ -r /proc/sys/kernel/random/poolsize ]; then
+  /bin/dd if=/dev/urandom of=/etc/random-seed count=1 bs=$(expr $(cat /proc/sys/kernel/random/poolsize) / 8) 2> /dev/null
+else
+  /bin/dd if=/dev/urandom of=/etc/random-seed count=1 bs=512 2> /dev/null
+fi
+/bin/chmod 600 /etc/random-seed

@@ -1,0 +1,27 @@
+#!/bin/sh
+# Helper functions for s6 operations
+
+s6_start() {
+  if ! ( /sbin/pidof s6-svscan > /dev/null ) ; then
+    echo "s6-svscan is not running, unable to start $1"
+  elif [ -d /svc/$1 ] ; then
+    /command/s6-svc -u /svc/$1
+  elif [ -d /etc/svc/$1 ] ; then
+      /usr/bin/cp -a /etc/svc/$1 /svc
+      /command/s6-svscanctl -a /svc
+  fi
+}
+
+s6_stop() {
+  if ( /sbin/pidof s6-svscan > /dev/null ) ; then
+    /command/s6-svc -d /svc/$1
+  fi
+}
+
+s6_wait() {
+  /command/s6-svwait $1 /svc/$2
+}
+
+s6_signal() {
+  /command/s6-svc $1 /svc/$2
+}

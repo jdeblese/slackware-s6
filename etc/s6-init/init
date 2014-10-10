@@ -1,0 +1,98 @@
+#!/command/execlineb -P
+
+# This file is the first program run at boot time,
+# as process 1.
+# Edit it to suit your needs.
+
+/command/multisubstitute {
+  define DIR /svc
+  define SRC /etc/svc }
+
+/command/export S6DIR ${DIR}
+/command/export S6SRC ${SRC}
+
+# Make sure everything is sane and ignore input
+/command/cd /
+/command/umask 022
+#/command/fdclose 0
+
+/command/foreground { /command/if -n { test -e /dev/null } /usr/bin/mknod -m 666 /dev/null c 1 3 }
+/command/foreground { /command/if -n { test -e /dev/console } /usr/bin/mknod -m 600 /dev/console c 5 1 }
+
+# This should be printed to the console
+/command/if { /command/s6-echo "init stage 1" }
+
+
+# Mount a tmpfs on /svc
+/command/if { /command/s6-echo "Mount /svc" }
+/command/if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
+
+# Copy essential services
+/command/if { /command/s6-echo "Create tty1 and catch-all logger..." }
+/command/if { cp -a ${SRC}/.s6-svscan ${DIR} }
+#/command/if { cp -a ${SRC}/tty1 ${DIR} }
+/command/if { cp -a ${SRC}/svscanlog ${DIR} }
+
+# Close remaining handles to /dev/console
+#/command/fdclose 1
+#/command/fdclose 2
+
+# Now no process has any open fd to /dev/console (or to
+# anything for that matter).
+# We can safely overwrite the minimal /dev with the real one.
+
+# *Fix /dev and /tmp*
+
+# Now we have a working /dev and /tmp, and a minimal writable /service
+# with a catch-all logger and a getty. We're good for stage 2 !
+
+# Load the general environment
+#/command/s6-envdir /etc/s6-init/env
+
+# Fork the "init-stage2" script 
+# Have it ready to start as soon as the catch-all logger is in place
+/command/background
+{
+  /command/s6-setsid
+
+  # Run initial setup
+  /command/if { /etc/rc.d/rc.S }
+
+  # Make varous mounts visible to mount
+  foreground { redirfd -c 1 /etc/mtab grep "^tmpfs ${DIR}" /proc/mounts }
+  # NOTE These should not be umounted at shutdown, so don't add them
+  # foreground { redirfd -c 1 /etc/mtab grep "^devtmpfs" /proc/mounts }
+  # foreground { redirfd -c 1 /etc/mtab grep "^devpts" /proc/mounts }
+  # foreground { redirfd -c 1 /etc/mtab grep "^cgroup_root" /proc/mounts }
+
+  # Screen blanks after 15 minutes idle time, and powers down in one hour
+  # if the kernel supports APM or ACPI power management:
+  foreground { /bin/setterm -blank 15 -powersave powerdown -powerdown 60 }
+
+  # Start initial terminal
+  /command/if { cp -a ${SRC}/tty1 ${DIR} }
+  /command/if { /command/s6-svscanctl -a ${DIR} }
+
+  # Run multi-user setup, logging to file
+  /command/fdclose 1
+  /command/fdclose 2
+  /command/redirfd -w 1 ${DIR}/svscanlog/fifo # (blocks until the logger reads)
+  /command/fdmove -c 2 1
+  /etc/rc.d/rc.M
+}
+/command/unexport LASTPID
+
+# Reopen stdin/stdout/stderr and make them point to the right places
+/command/redirfd -r 0 /dev/null
+/command/if { /command/s6-mkfifo ${DIR}/svscanlog/fifo }
+/command/redirfd -wnb 1 ${DIR}/svscanlog/fifo # (black magic: doesn't block)
+/command/fdmove -c 2 1
+
+# Clear the environment (including PATH!)
+# /command/exec -c
+
+# Replace argv[0] with s6-svscan
+/command/exec -a s6-svscan
+
+# Run s6-svscan
+/command/s6-svscan -t 0 ${DIR}

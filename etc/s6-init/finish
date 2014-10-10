@@ -1,0 +1,97 @@
+#!/command/execlineb -S0
+
+# This is the shutdown script, running as process 1.
+
+# Set linefeed mode to avoid staircase effect.
+foreground { /bin/stty onlcr }
+
+# Make sure we have no open handle to anywhere else
+# than /dev/console
+cd /
+fdclose 0
+redirfd -w 1 /dev/console
+fdmove -c 2 1
+
+# Start a sync in the background as the shutdown gets going
+background { /bin/sync }
+
+foreground { /etc/s6-init/cleanup }
+
+# Even if s6-svscan properly brought all the services down
+# before exec'ing into this script, users might have launched
+# background nohup processes, so we have to kill everything.
+
+foreground { echo "Sending all processes the TERM signal." }
+foreground { s6-nuke -th }
+foreground { sleep 2 }
+foreground { echo "Sending all processes the KILL signal." }
+foreground { s6-nuke -k }
+
+# Here, s6-nuke sends a SIGKILL to every process on the system.
+# It kills itself, but not before the SIGKILL has been broadcast.
+# The "foreground" process runs as process 1, so it survives,
+# and execs into the rest of the script when s6-nuke dies.
+
+# Reap the huge army of zombies we just created
+foreground { echo "Waiting for child processes to exit." }
+wait { }
+
+foreground { echo "Syncing disks." }
+foreground { /bin/sync } # yes, it helps.
+foreground { echo "Unmounting disks." }
+
+# Turn off quotas
+foreground {
+  if { /bin/grep -q quota /etc/fstab }
+  if { test -x /sbin/quotaoff }
+  foreground { echo "Turning off filesystem quotas." }
+  /sbin/quotaoff -a }
+
+# Log to WTMP
+foreground { echo "Log ${1} to wtmp." }
+foreground { /sbin/${1} -w }
+
+# Clear locks
+foreground {
+  if { test -d /var/lock/subsys }
+  /bin/sh -c "/usr/bin/rm -f /var/lock/subsys/*" }
+
+# Turnoff swap
+foreground { echo "Turning off swap." }
+foreground { /sbin/swapoff -a }
+foreground { /bin/sync }
+
+# Unmount filesystems
+foreground { echo "Unmounting local file systems." }
+foreground { /bin/umount -v -a -t no,proc,sysfs,tmpfs }
+
+foreground { echo "Remounting root filesystem read-only." }
+foreground { /bin/mount -v -n -o remount,ro / }
+
+# FIXME cryptsetup?
+
+# Deactivate LVM volume groups:
+foreground {
+  if { test -r /etc/lvmtab -o -d /etc/lvm/backup }
+  foreground { echo "Deactivating LVM volume groups:" }
+  /sbin/vgchange -an --ignorelockingfailure }
+
+# This never hurts again (especially since root-on-LVM always fails
+# to deactivate the / logical volume...  but at least it was
+# remounted as read-only first)
+foreground { /bin/sync }
+
+# sleep 3 fixes problems with some hard drives that don't
+# otherwise finish syncing before reboot or poweroff
+foreground { /bin/sleep 3 }
+
+# This is to ensure all processes have completed on SMP machines:
+foreground { echo "Waiting for child processes to exit." }
+wait { }
+
+# FIXME genpowered?
+
+# Reboot, halt or poweroff the machine, depending on the parameter
+# that was given to the script.
+foreground { echo "\nPerforming "${1}"." }
+s6-${1}
