@@ -20,20 +20,24 @@
 #  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+. /etc/s6-init/s6shfunc
+
 postfix_start()
 {
-  postfix start
+  s6_start postfix
 }
 
 postfix_stop()
 {
+  # Signal not to restart the process
+  s6_signal -O postfix
   postfix stop
 }
 
 postfix_restart()
 {
-  postfix_stop
-  postfix_start
+  # Stop the process, s6 will restart it
+  postfix stop
 }
 
 postfix_reload()
