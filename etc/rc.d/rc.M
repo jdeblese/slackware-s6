@@ -237,9 +237,7 @@ fi
 # hard drives and reports any problems.  Note some devices (which aren't
 # smart, I guess ;) will hang if probed by smartd, so it's commented out
 # by default.
-#if [ -x /usr/sbin/smartd ]; then
-#  /usr/sbin/smartd
-#fi
+# s6_start smart
 
 # Monitor the UPS with genpowerd.
 # To use this, uncomment this section and edit your settings in

@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+
+# Only logs to STDOUT when in debug mode :(
+/usr/sbin/smartd -n
