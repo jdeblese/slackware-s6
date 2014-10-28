@@ -1,0 +1,61 @@
+#!/command/execlineb -P
+
+#############################################################
+# Init script for CrashPlanEngine
+#############################################################
+
+# Modified for s6 daemonization
+
+define TARGETDIR "/opt/crashplan"
+define SCRIPTDIR "${TARGETDIR}/bin"
+#define SCRIPT "CrashPlanEngine"
+#define DESC "CrashPlan Engine"
+#define NAME "CrashPlanEngine"
+define DAEMON "${TARGETDIR}/lib/com.backup42.desktop.jar"
+
+if { test -f ${DAEMON} }
+
+#if { test -f ${TARGETDIR}/install.vars }
+#. $TARGETDIR/install.vars
+
+#if [[ ${LC_ALL} ]]; then
+#	LOCALE=`sed 's/\..*//g' <<< ${LC_ALL}`
+#	export LC_ALL="${LOCALE}.UTF-8"
+#elif [[ ${LC_CTYPE} ]]; then
+#	LOCALE=`sed 's/\..*//g' <<< ${LC_CTYPE}`
+#	export LC_CTYPE="${LOCALE}.UTF-8"
+#elif [[ ${LANG} ]]; then
+#	LOCALE=`sed 's/\..*//g' <<< ${LANG}`
+#	export LANG="${LOCALE}.UTF-8"
+#else
+#	export LANG="en_US.UTF-8"
+#fi
+define LANG "en_US.UTF-8"
+
+#if { test -f ${TARGETDIR}/bin/run.conf }
+#. $TARGETDIR/bin/run.conf
+
+define FULL_CP "${DAEMON}:${TARGETDIR}/lang"
+
+export LANG ${LANG}
+cd ${TARGETDIR}
+		
+# redirfd -w 1 ${TARGETDIR}/log/engine_output.log
+# redirfd -w 2 ${TARGETDIR}/log/engine_error.log
+
+fdmove -c 2 1
+
+nice -n 19 /usr/lib64/java/bin/java
+  -Dfile.encoding=UTF-8 -Dapp=CrashPlanService -DappBaseName=CrashPlan
+  -Xms20m -Xmx1024m -Djava.net.preferIPv4Stack=true -Dsun.net.inetaddr.ttl=300
+  -Dnetworkaddress.cache.ttl=300 -Dsun.net.inetaddr.negative.ttl=0
+  -Dnetworkaddress.cache.negative.ttl=0 -Dc42.native.md5.enabled=false
+  -classpath ${FULL_CP} com.backup42.service.CPService
+	
+#if [[ $! -gt 0 ]]; then
+#	echo $! > $PIDFILE
+#	echo "OK"
+#else
+#	echo "FAIL" 
+#	exit 1
+#fi
