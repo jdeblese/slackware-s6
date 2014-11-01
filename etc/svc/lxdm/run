@@ -1,0 +1,31 @@
+#!/bin/sh
+
+[ -f /etc/sysconfig/i18n ] && . /etc/sysconfig/i18n
+
+if [ -z "$LANG" -a -e /etc/sysconfig/language ]; then
+	. /etc/sysconfig/language
+	if [ -n "$RC_LANG"]; then
+		LANG=$RC_LANG
+	fi
+fi
+
+if [ -n "$LANG" ]; then
+	export LANG
+fi
+
+[ -f /etc/sysconfig/desktop ] && . /etc/sysconfig/desktop
+[ -f /etc/sysconfig/windowmanager ] && . /etc/sysconfig/windowmanager
+
+if [ -n "$DEFAULT_WM" ]; then
+	PREFERRED=$DEFAULT_WM
+fi
+
+if [ -n "$DESKTOP" ]; then
+	export DESKTOP
+fi
+
+if [ -n "$PREFERRED" ]; then
+	export PREFERRED
+fi
+
+exec /command/fdmove -c 2 1 /usr/sbin/lxdm-binary
