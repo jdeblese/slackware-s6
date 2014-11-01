@@ -2,4 +2,8 @@
 
 fdmove -c 2 1
 
+# Join cgroup
+foreground { mkdir -p /sys/fs/cgroup/s6/remote }
+cgjoin s6/remote
+
 /usr/sbin/sshd -D -e

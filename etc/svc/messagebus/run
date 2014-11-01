@@ -20,6 +20,10 @@ fdmove -c 2 1
 foreground { rm -rf /var/run/dbus }
 foreground { mkdir /var/run/dbus }
 
+# Join cgroup
+foreground { mkdir -p /sys/fs/cgroup/s6/messagebus }
+cgjoin s6/messagebus
+
 if { /usr/bin/dbus-uuidgen --ensure }
 /usr/bin/dbus-daemon --system --nofork
 

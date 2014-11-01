@@ -2,5 +2,9 @@
 
 fdmove -c 2 1
 
+# Join cgroup
+foreground { mkdir -p /sys/fs/cgroup/s6/messagebus }
+cgjoin s6/messagebus
+
 if { s6-svwait -u /svc/messagebus }
   /usr/sbin/console-kit-daemon --no-daemon

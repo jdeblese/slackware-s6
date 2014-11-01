@@ -58,6 +58,11 @@
   # Run initial setup
   /command/if { /etc/rc.d/rc.S }
 
+  # create S6 cgroup
+  /command/foreground {
+    /command/if { mkdir /sys/fs/cgroup/s6 }
+    mount -t cgroup cgroup /sys/fs/cgroup/s6 -o name=s6,none }
+
   # Make varous mounts visible to mount
   foreground { redirfd -c 1 /etc/mtab grep "^tmpfs ${DIR}" /proc/mounts }
   # NOTE These should not be umounted at shutdown, so don't add them
