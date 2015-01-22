@@ -1,0 +1,34 @@
+#!/bin/sh
+# Start/stop/restart the hostapd (IEEE 802.11 Wireless AP) server:
+
+. /etc/s6-init/s6shfunc
+
+# Start hostapd:
+hostapd_start() {
+  s6_start hostapd
+}
+
+# Stop hostapd:
+hostapd_stop() {
+  s6_stop hostapd
+}
+
+# Restart hostapd:
+hostapd_restart() {
+  # Send TERM signal, will be restarted automatically
+  s6_signal -t hostapd
+}
+
+case "$1" in
+'start')
+  hostapd_start
+  ;;
+'stop')
+  hostapd_stop
+  ;;
+'restart')
+  hostapd_restart
+  ;;
+*)
+  echo "usage rc.hostapd: start|stop|restart"
+esac

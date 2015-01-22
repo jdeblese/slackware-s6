@@ -1,0 +1,23 @@
+#!/command/execlineb -P
+
+multisubstitute {
+  define LOGDIR /var/log/services/hostapd
+  define UID root
+  define GID root }
+
+umask 077
+
+# Make log directory (as root) if it doesn't already exist
+foreground {
+  if -n { test -d ${LOGDIR} }
+    mkdir -p ${LOGDIR} }
+
+# Set safer permissions
+foreground { chown -R ${UID}:${GID} ${LOGDIR} }
+
+# Start logger as ${UID}
+s6-setuidgid ${UID}
+
+# Keep 3 logs
+# Maximum log size 1 MiB
+s6-log -bt n3 s1048576 ${LOGDIR}

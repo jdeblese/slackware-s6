@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+
+fdmove -c 2 1
+/usr/sbin/hostapd /etc/hostapd/hostapd.conf
