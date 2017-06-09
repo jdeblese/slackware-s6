@@ -65,7 +65,7 @@ cp -a doc/ $PKG/usr/doc/$PRGNAM-$VERSION/html
 mkdir -p $PKG/install
 cat > $PKG/install/slack-desc << EOF
        |-----handy-ruler------------------------------------------------------|
-skalibs: skalibs, version $VERSION
+skalibs: skalibs
 skalibs:
 skalibs: skalibs is a package centralizing the free software / open source C
 skalibs: development files used for building all software at skarnet.org: it
