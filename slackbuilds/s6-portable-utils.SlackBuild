@@ -1,0 +1,92 @@
+#!/bin/sh
+
+PRGNAM=s6-portable-utils
+VERSION=${VERSION:-2.2.1.0}
+BUILD=${BUILD:-1}
+TAG=${TAG:-_Jw}
+
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i486 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+CWD=$(pwd)
+TMP=${TMP:-/tmp/Jw}
+PKG=$TMP/package-$PRGNAM
+OUTPUT=${OUTPUT:-/tmp}
+
+if [ "$ARCH" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "i686" ]; then
+  SLKCFLAGS="-O2 -march=i686 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+else
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+fi
+
+set -eu
+
+rm -rf $PKG
+mkdir -p $PKG
+cd $TMP
+tar xvf $CWD/$PRGNAM-$VERSION.tar.gz
+cd $PRGNAM-$VERSION
+chown -R root:root .
+chmod -R u+w,go+r-w,a-s .
+
+# Fix strip command
+#echo "strip --strip-unneeded" > conf-compile/conf-stripbins
+#echo "strip --strip-unneeded" > conf-compile/conf-striplibs
+
+./configure \
+	--prefix=/ \
+	--exec-prefix=/ \
+	--dynlibdir=/lib${LIBDIRSUFFIX} \
+	--bindir=/bin \
+	--libexecdir=/usr/libexec \
+	--libdir=/usr/lib${LIBDIRSUFFIX} \
+	--includedir=/usr/include \
+	--with-sysdeps=/usr/lib${LIBDIRSUFFIX}/sysdeps \
+	--enable-shared
+
+make
+make strip
+DESTDIR=$PKG make install
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+cp -a doc/ $PKG/usr/doc/$PRGNAM-$VERSION/html
+
+mkdir -p $PKG/install
+cat > $PKG/install/slack-desc << EOF
+  |-----handy-ruler------------------------------------------------------|
+s6: s6
+s6:
+s6: s6 is a small suite of programs for UNIX, designed to allow process
+s6: supervision (a.k.a service supervision), in the line of daemontools
+s6: and runit.
+s6:
+s6: Homepage: http://skarnet.org/software/s6
+s6:
+EOF
+
+cat > $PKG/install/doinst.sh << EOF
+cd /package/$PRGDIR/$PRGNAM-$VERSION
+make install
+if [ ! grep -q "^/library.so" ] ; then
+  echo "*** Warning, the path /library.so is not in your library search\npath. Please add it and run ldconfig."
+else
+  ldconfig
+fi
+EOF
+
+cd $PKG
+/sbin/makepkg -p -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}
