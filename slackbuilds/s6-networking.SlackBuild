@@ -63,8 +63,6 @@ chmod -R u+w,go+r-w,a-s .
 	--enable-shared \
 	${ssl}
 	
-exit
-
 make
 make strip
 DESTDIR=$PKG make install
