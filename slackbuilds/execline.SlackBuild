@@ -47,10 +47,10 @@ chmod -R u+w,go+r-w,a-s .
 #echo "strip --strip-unneeded" > conf-compile/conf-striplibs
 
 ./configure \
-	--prefix=/usr \
-	--exec-prefix=/usr \
-	--dynlibdir=/usr/lib${LIBDIRSUFFIX} \
-	--bindir=/usr/bin \
+	--prefix=/ \
+	--exec-prefix=/ \
+	--dynlibdir=/lib${LIBDIRSUFFIX} \
+	--bindir=/bin \
 	--libexecdir=/usr/libexec \
 	--libdir=/usr/lib${LIBDIRSUFFIX} \
 	--includedir=/usr/include \

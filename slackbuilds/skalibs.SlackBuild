@@ -47,11 +47,11 @@ chmod -R u+w,go+r-w,a-s .
 #echo "strip --strip-unneeded" > conf-compile/conf-striplibs
 
 ./configure \
-	--prefix=/usr \
-	--dynlibdir=/usr/lib${LIBDIRSUFFIX} \
+	--prefix=/ \
+	--dynlibdir=/lib${LIBDIRSUFFIX} \
+	--datadir=/etc \
 	--libdir=/usr/lib${LIBDIRSUFFIX} \
 	--includedir=/usr/include \
-	--datadir=/etc \
 	--sysdepdir=/usr/lib${LIBDIRSUFFIX}/sysdeps
 
 make
