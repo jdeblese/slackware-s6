@@ -58,6 +58,12 @@
   # Run initial setup
   /command/if { /etc/rc.d/rc.S }
 
+  # Proc should be mounted, so we can fix ctrl-alt-del handling
+  # CFR: https://www.kernel.org/doc/Documentation/sysctl/kernel.txt
+  #   0 - send SIGINT to init(1)
+  # > 0 - immediate reboot without sync
+  /command/foreground { redirfd -w 1 /proc/sys/kernel/ctrl-alt-del echo "0" }
+
   # create S6 cgroup
   /command/foreground {
     /command/if { mkdir /sys/fs/cgroup/s6 }
