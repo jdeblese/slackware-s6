@@ -11,3 +11,6 @@ cgjoin: cgjoin.o
 
 .c.o:
 	${CC} -c ${CFLAGS} $< -o $@
+
+clean:
+	rm -f ${OBJECTS} cgjoin
