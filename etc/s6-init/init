@@ -1,41 +1,41 @@
-#!/command/execlineb -P
+#!execlineb -P
 
 # This file is the first program run at boot time,
 # as process 1.
 # Edit it to suit your needs.
 
-/command/multisubstitute {
+multisubstitute {
   define DIR /svc
   define SRC /etc/svc }
 
-/command/export S6DIR ${DIR}
-/command/export S6SRC ${SRC}
+export S6DIR ${DIR}
+export S6SRC ${SRC}
 
 # Make sure everything is sane and ignore input
-/command/cd /
-/command/umask 022
-#/command/fdclose 0
+cd /
+umask 022
+#fdclose 0
 
-/command/foreground { /command/if -n { test -e /dev/null } /usr/bin/mknod -m 666 /dev/null c 1 3 }
-/command/foreground { /command/if -n { test -e /dev/console } /usr/bin/mknod -m 600 /dev/console c 5 1 }
+foreground { if -n { test -e /dev/null } /usr/bin/mknod -m 666 /dev/null c 1 3 }
+foreground { if -n { test -e /dev/console } /usr/bin/mknod -m 600 /dev/console c 5 1 }
 
 # This should be printed to the console
-/command/if { /command/s6-echo "init stage 1" }
+if { s6-echo "init stage 1" }
 
 
 # Mount a tmpfs on /svc
-/command/if { /command/s6-echo "Mount /svc" }
-/command/if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
+if { s6-echo "Mount /svc" }
+if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
 
 # Copy essential services
-/command/if { /command/s6-echo "Create tty1 and catch-all logger..." }
-/command/if { cp -a ${SRC}/.s6-svscan ${DIR} }
-#/command/if { cp -a ${SRC}/tty1 ${DIR} }
-/command/if { cp -a ${SRC}/svscanlog ${DIR} }
+if { s6-echo "Create tty1 and catch-all logger..." }
+if { cp -a ${SRC}/.s6-svscan ${DIR} }
+#if { cp -a ${SRC}/tty1 ${DIR} }
+if { cp -a ${SRC}/svscanlog ${DIR} }
 
 # Close remaining handles to /dev/console
-#/command/fdclose 1
-#/command/fdclose 2
+#fdclose 1
+#fdclose 2
 
 # Now no process has any open fd to /dev/console (or to
 # anything for that matter).
@@ -47,26 +47,26 @@
 # with a catch-all logger and a getty. We're good for stage 2 !
 
 # Load the general environment
-#/command/s6-envdir /etc/s6-init/env
+#s6-envdir /etc/s6-init/env
 
 # Fork the "init-stage2" script 
 # Have it ready to start as soon as the catch-all logger is in place
-/command/background
+background
 {
-  /command/s6-setsid
+  s6-setsid
 
   # Run initial setup
-  /command/if { /etc/rc.d/rc.S }
+  if { /etc/rc.d/rc.S }
 
   # Proc should be mounted, so we can fix ctrl-alt-del handling
   # CFR: https://www.kernel.org/doc/Documentation/sysctl/kernel.txt
   #   0 - send SIGINT to init(1)
   # > 0 - immediate reboot without sync
-  /command/foreground { redirfd -w 1 /proc/sys/kernel/ctrl-alt-del echo "0" }
+  foreground { redirfd -w 1 /proc/sys/kernel/ctrl-alt-del echo "0" }
 
   # create S6 cgroup
-  /command/foreground {
-    /command/if { mkdir /sys/fs/cgroup/s6 }
+  foreground {
+    if { mkdir /sys/fs/cgroup/s6 }
     mount -t cgroup cgroup /sys/fs/cgroup/s6 -o name=s6,none }
 
   # Make varous mounts visible to mount
@@ -81,29 +81,29 @@
   foreground { /bin/setterm -blank 15 -powersave powerdown -powerdown 60 }
 
   # Start initial terminal
-  /command/if { cp -a ${SRC}/tty1 ${DIR} }
-  /command/if { /command/s6-svscanctl -a ${DIR} }
+  if { cp -a ${SRC}/tty1 ${DIR} }
+  if { s6-svscanctl -a ${DIR} }
 
   # Run multi-user setup, logging to file
-  /command/fdclose 1
-  /command/fdclose 2
-  /command/redirfd -w 1 ${DIR}/svscanlog/fifo # (blocks until the logger reads)
-  /command/fdmove -c 2 1
+  fdclose 1
+  fdclose 2
+  redirfd -w 1 ${DIR}/svscanlog/fifo # (blocks until the logger reads)
+  fdmove -c 2 1
   /etc/rc.d/rc.M
 }
-/command/unexport LASTPID
+unexport LASTPID
 
 # Reopen stdin/stdout/stderr and make them point to the right places
-/command/redirfd -r 0 /dev/null
-/command/if { /command/s6-mkfifo ${DIR}/svscanlog/fifo }
-/command/redirfd -wnb 1 ${DIR}/svscanlog/fifo # (black magic: doesn't block)
-/command/fdmove -c 2 1
+redirfd -r 0 /dev/null
+if { s6-mkfifo ${DIR}/svscanlog/fifo }
+redirfd -wnb 1 ${DIR}/svscanlog/fifo # (black magic: doesn't block)
+fdmove -c 2 1
 
 # Clear the environment (including PATH!)
-# /command/exec -c
+# exec -c
 
 # Replace argv[0] with s6-svscan
-/command/exec -a s6-svscan
+exec -a s6-svscan
 
 # Run s6-svscan
-/command/s6-svscan -t 0 ${DIR}
+s6-svscan -t 0 ${DIR}
