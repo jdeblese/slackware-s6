@@ -1,0 +1,3 @@
+#!/bin/execlineb -P
+
+/sbin/agetty --noreset --noclear 38400 console linux

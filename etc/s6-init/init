@@ -34,9 +34,9 @@ foreground { if -n { test -d ${LOG} } s6-mkdir ${LOG} }
 if { s6-chmod 755 ${LOG} }
 
 # Copy essential services
-if { s6-echo "Create tty1 and catch-all logger..." }
+if { s6-echo "Create console getty and catch-all logger..." }
 if { cp -a ${SRC}/.s6-svscan ${DIR} }
-#if { cp -a ${SRC}/tty1 ${DIR} }
+if { cp -a ${SRC}/console ${DIR} }
 if { cp -a ${SRC}/svscanlog ${DIR} }
 
 # Close remaining handles to /dev/console
