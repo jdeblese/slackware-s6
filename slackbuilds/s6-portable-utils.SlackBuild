@@ -81,13 +81,6 @@ s6:
 EOF
 
 cat > $PKG/install/doinst.sh << EOF
-cd /package/$PRGDIR/$PRGNAM-$VERSION
-make install
-if [ ! grep -q "^/library.so" ] ; then
-  echo "*** Warning, the path /library.so is not in your library search\npath. Please add it and run ldconfig."
-else
-  ldconfig
-fi
 EOF
 
 cd $PKG
