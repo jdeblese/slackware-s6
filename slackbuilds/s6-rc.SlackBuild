@@ -70,15 +70,18 @@ cp -a doc/ $PKG/usr/doc/$PRGNAM-$VERSION/html
 
 mkdir -p $PKG/install
 cat > $PKG/install/slack-desc << EOF
-  |-----handy-ruler------------------------------------------------------|
-s6: s6
-s6:
-s6: s6 is a small suite of programs for UNIX, designed to allow process
-s6: supervision (a.k.a service supervision), in the line of daemontools
-s6: and runit.
-s6:
-s6: Homepage: http://skarnet.org/software/s6
-s6:
+     |-----handy-ruler------------------------------------------------------|
+s6-rc: s6-rc
+s6-rc:
+s6-rc: s6-rc is a service manager for s6-based systems, i.e. a suite of
+s6-rc: programs that can start and stop services, both long-running daemons
+s6-rc: and one-time initialization scripts, in the proper order according to
+s6-rc: a dependency tree. It ensures that long-running daemons are
+s6-rc: supervised by the s6 infrastructure, and that one-time scripts are
+s6-rc: also run in a controlled environment.
+s6-rc:
+s6-rc: Homepage: http://skarnet.org/software/s6-rc/
+s6-rc:
 EOF
 
 cat > $PKG/install/doinst.sh << EOF

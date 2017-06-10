@@ -75,15 +75,17 @@ cp -a doc/ $PKG/usr/doc/$PRGNAM-$VERSION/html
 
 mkdir -p $PKG/install
 cat > $PKG/install/slack-desc << EOF
-  |-----handy-ruler------------------------------------------------------|
-s6: s6
-s6:
-s6: s6 is a small suite of programs for UNIX, designed to allow process
-s6: supervision (a.k.a service supervision), in the line of daemontools
-s6: and runit.
-s6:
-s6: Homepage: http://skarnet.org/software/s6
-s6:
+             |-----handy-ruler------------------------------------------------------|
+s6-networking: s6-networking
+s6-networking:
+s6-networking: s6-networking is a suite of small networking utilities for Unix
+s6-networking: systems. It includes command-line client and server management, TCP
+s6-networking: access control, privilege escalation across UNIX domain sockets,
+s6-networking: IDENT protocol management and clock synchronization. Optionally, it
+s6-networking: also includes command-line TLS/SSL tools for secure communications.
+s6-networking:
+s6-networking: Homepage: http://skarnet.org/software/s6-networking/
+s6-networking:
 EOF
 
 cat > $PKG/install/doinst.sh << EOF

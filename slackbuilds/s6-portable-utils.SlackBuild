@@ -69,15 +69,25 @@ cp -a doc/ $PKG/usr/doc/$PRGNAM-$VERSION/html
 
 mkdir -p $PKG/install
 cat > $PKG/install/slack-desc << EOF
-  |-----handy-ruler------------------------------------------------------|
-s6: s6
-s6:
-s6: s6 is a small suite of programs for UNIX, designed to allow process
-s6: supervision (a.k.a service supervision), in the line of daemontools
-s6: and runit.
-s6:
-s6: Homepage: http://skarnet.org/software/s6
-s6:
+                 |-----handy-ruler------------------------------------------------------|
+s6-portable-utils: s6-portable-utils
+s6-portable-utils:
+s6-portable-utils: s6-portable-utils is a set of tiny general Unix utilities, often
+s6-portable-utils: performing well-known tasks such as cut and grep, but optimized for
+s6-portable-utils: simplicity and small size. They were designed for embedded systems
+s6-portable-utils: and other constrained environments, but they work everywhere.
+s6-portable-utils:
+s6-portable-utils: Other set of small utilities are usually system-specific; for
+s6-portable-utils: instance, the (otherwise excellent) BusyBox project only works on
+s6-portable-utils: Linux.
+s6-portable-utils:
+s6-portable-utils: Some of s6-portable-utils' programs are a conformant implementation
+s6-portable-utils: of a POSIX utility as determined by the Single Unix Specification,
+s6-portable-utils: version 4; the relevant documentation pages mentions this. However,
+s6-portable-utils: none of the s6-portable-utils programs supports internationalization.
+s6-portable-utils:
+s6-portable-utils: Homepage: http://skarnet.org/software/s6-portable-utils/
+s6-portable-utils:
 EOF
 
 cat > $PKG/install/doinst.sh << EOF
