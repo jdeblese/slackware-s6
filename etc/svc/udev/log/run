@@ -7,6 +7,9 @@ multisubstitute {
 
 umask 077
 
+# udev is often started when root is still read-only
+ifelse -n { s6-touch ${LOGDIR}/current } { s6-sleep 10 }
+
 # Make log directory (as root) if it doesn't already exist
 foreground {
   if -n { test -d ${LOGDIR} }
