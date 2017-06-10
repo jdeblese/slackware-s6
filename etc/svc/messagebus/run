@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 #
 # messagebus:   The D-BUS systemwide message bus
 #

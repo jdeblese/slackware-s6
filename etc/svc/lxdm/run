@@ -28,4 +28,4 @@ if [ -n "$PREFERRED" ]; then
 	export PREFERRED
 fi
 
-exec /command/fdmove -c 2 1 /usr/sbin/lxdm-binary
+exec fdmove -c 2 1 /usr/sbin/lxdm-binary

@@ -1,4 +1,4 @@
-#!execlineb -P
+#!/bin/execlineb -P
 
 # This file is the first program run at boot time,
 # as process 1.

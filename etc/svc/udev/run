@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 # vim: set ts=4 sw=4 et:
 
 fdmove -c 2 1
