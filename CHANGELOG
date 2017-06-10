@@ -1,0 +1,5 @@
+2017-06-09
+----------
+
+* Stop using slashpackage convention, as it's inconsistent with the broader
+  slackware setup
