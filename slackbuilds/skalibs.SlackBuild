@@ -46,6 +46,8 @@ chmod -R u+w,go+r-w,a-s .
 #echo "strip --strip-unneeded" > conf-compile/conf-stripbins
 #echo "strip --strip-unneeded" > conf-compile/conf-striplibs
 
+CFLAGS="$SLKCFLAGS" \
+CXXFLAGS="$SLKCFLAGS" \
 ./configure \
 	--prefix=/ \
 	--dynlibdir=/lib${LIBDIRSUFFIX} \
