@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 
 multisubstitute {
   define MODE tap

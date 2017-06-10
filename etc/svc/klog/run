@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 
 # '-c 3' = display level 'error' or higher messages on console
 # '-x' = turn off broken EIP translation

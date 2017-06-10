@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 
 fdmove -c 2 1
 # If you want cron to actually log activity to /var/log/cron, then change

@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 
 # Test for existence of the executable and of /proc/acpi
 ifelse -n { test -d /proc/acpi }

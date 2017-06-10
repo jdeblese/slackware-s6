@@ -1,4 +1,4 @@
-#!/command/execlineb -P
+#!/bin/execlineb -P
 
 # FIXME find some way to get this from a common parameter file
 multisubstitute {
