@@ -26,12 +26,13 @@ if { s6-echo "init stage 1" }
 
 # Mount a tmpfs on /svc
 if { s6-echo "Mount /svc" }
-# foreground { if -n { test -d ${DIR} } s6-mkdir ${DIR} }  # can't do this here, read-only file system
+# Need to do some work here, as filesystem is read-only but we need an /svc directory
+foreground { if -n { test -d ${DIR} }
+  foreground { s6-echo "  Creating /svc, requires temporarily remounting /" }
+  foreground { mount -o remount,rw / }
+  foreground { s6-mkdir ${DIR} }
+  mount -o remount,ro / }
 if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
-
-# Check logging directory
-#foreground { if -n { test -d ${LOG} } s6-mkdir ${LOG} }  # can't do this here, read-only file system
-#if { s6-chmod 755 ${LOG} }  # can't do this here, read-only file system
 
 # Copy essential services
 if { s6-echo "Create console getty and catch-all logger..." }
@@ -63,6 +64,11 @@ background
 
   # Run initial setup
   if { /etc/rc.d/rc.S }
+
+  # Check logging directory
+  # Filesystem is now read-write, so should be possible
+  foreground { if -n { test -d ${LOG} } s6-mkdir ${LOG} }
+  if { s6-chmod 755 ${LOG} }
 
   # Proc should be mounted, so we can fix ctrl-alt-del handling
   # CFR: https://www.kernel.org/doc/Documentation/sysctl/kernel.txt
