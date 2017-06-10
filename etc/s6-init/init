@@ -25,6 +25,7 @@ if { s6-echo "init stage 1" }
 
 # Mount a tmpfs on /svc
 if { s6-echo "Mount /svc" }
+foreground { if -n { test -d /svc } s6-mkdir /svc }
 if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
 
 # Copy essential services
