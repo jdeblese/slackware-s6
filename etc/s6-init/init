@@ -26,12 +26,12 @@ if { s6-echo "init stage 1" }
 
 # Mount a tmpfs on /svc
 if { s6-echo "Mount /svc" }
-foreground { if -n { test -d ${DIR} } s6-mkdir ${DIR} }
+# foreground { if -n { test -d ${DIR} } s6-mkdir ${DIR} }  # can't do this here, read-only file system
 if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
 
 # Check logging directory
-foreground { if -n { test -d ${LOG} } s6-mkdir ${LOG} }
-if { s6-chmod 755 ${LOG} }
+#foreground { if -n { test -d ${LOG} } s6-mkdir ${LOG} }  # can't do this here, read-only file system
+#if { s6-chmod 755 ${LOG} }  # can't do this here, read-only file system
 
 # Copy essential services
 if { s6-echo "Create console getty and catch-all logger..." }
