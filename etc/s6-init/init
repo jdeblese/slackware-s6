@@ -6,7 +6,8 @@
 
 multisubstitute {
   define DIR /svc
-  define SRC /etc/svc }
+  define SRC /etc/svc
+  define LOG /var/log/services }
 
 export S6DIR ${DIR}
 export S6SRC ${SRC}
@@ -25,8 +26,12 @@ if { s6-echo "init stage 1" }
 
 # Mount a tmpfs on /svc
 if { s6-echo "Mount /svc" }
-foreground { if -n { test -d /svc } s6-mkdir /svc }
+foreground { if -n { test -d ${DIR} } s6-mkdir ${DIR} }
 if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
+
+# Check logging directory
+foreground { if -n { test -d ${LOG} } s6-mkdir ${LOG} }
+if { s6-chmod 755 ${LOG} }
 
 # Copy essential services
 if { s6-echo "Create tty1 and catch-all logger..." }
