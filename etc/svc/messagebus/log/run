@@ -18,4 +18,4 @@ s6-setuidgid ${UID}
 
 # Keep 3 logs
 # Maximum log size 1 MiB
-s6-log -bt n3 s1048576 ${LOGDIR}
+s6-log -b n3 T s1048576 ${LOGDIR}
