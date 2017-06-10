@@ -22,4 +22,4 @@ s6-setuidgid ${UID}
 # exec -c
 # -p prevents this logger from ever dying
 # -b prevents the logger from eating too much memory
-s6-log -bpt ${LOG}
+s6-log -bp s1048576 T ${LOG}
