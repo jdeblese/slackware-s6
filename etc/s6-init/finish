@@ -94,4 +94,4 @@ wait { }
 # Reboot, halt or poweroff the machine, depending on the parameter
 # that was given to the script.
 foreground { echo "\nPerforming "${1}"." }
-s6-${1}
+s6-${1} -f
