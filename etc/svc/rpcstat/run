@@ -1,0 +1,11 @@
+#!/bin/execlineb -P
+
+fdmove -c 2 1
+define SRVDIR /svc
+
+if { s6-svwait -u ${SRVDIR}/rpcportmap }
+if -x 111 { test -x /sbin/rpc.statd }
+ifelse -n { ps axc | grep -q rpc.statd }
+  { /sbin/rpc.statd --foreground --no-syslog }
+  echo "rpc.statd is already running"
+

@@ -1,0 +1,40 @@
+#!/bin/execlineb -P
+
+define SRVDIR /svc
+
+# Redirect all intermediate errors to /dev/null
+redirfd -w 2 /dev/null
+
+# If /etc/exports doesn't exist, fail hard
+if -x 111 { test -r /etc/exports }
+# If no uncommented shares exist, fail hard
+if -x 111 { egrep -q "^/" /etc/exports }
+
+# If we do not detect nfsd support built into the kernel (or previously
+# loaded as a module), we will try to load the nfsd.ko kernel module:
+foreground {
+  if -n { test -r /proc/1/net/rpc/nfsd } /sbin/modprobe nfsd
+}
+
+# Use the new way of handling nfs client requests.
+foreground {
+  if { grep -wq nfsd /proc/filesystems }
+  if -n { grep -wq nfsd /proc/mounts }
+    /sbin/mount -t nfsd nfsd /proc/fs/nfs
+}
+
+# Check for portmap and statd daemons
+if { s6-svwait -u ${SRVDIR}/rpcportmap }
+if { s6-svwait -u ${SRVDIR}/rpcstat }
+
+# Check exports
+foreground {
+  if { test -x /usr/sbin/exportfs } /usr/sbin/exportfs -r
+}
+
+fdmove -c 2 1
+
+if { test -x /usr/sbin/rpc.mountd }
+ifelse -n { pidof rpc.mountd }
+  { /usr/sbin/rpc.mountd --foreground }
+  echo "rpc.mountd is already running"

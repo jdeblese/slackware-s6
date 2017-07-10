@@ -1,0 +1,8 @@
+#!/bin/execlineb -P
+
+fdmove -c 2 1
+
+if -x 111 { test -x /sbin/rpc.portmap }
+ifelse -n { ps axc | grep -q rpc.portmap }
+  { /sbin/rpc.portmap -f  }
+  echo "rpc.portmap is already running"

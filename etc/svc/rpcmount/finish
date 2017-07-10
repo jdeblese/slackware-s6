@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+
+redirfd -w 2 /dev/null
+foreground { killall rpc.mountd }
+foreground { sleep 1 }
+/usr/sbin/exportfs -au

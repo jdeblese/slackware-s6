@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+
+redirfd -w 2 /dev/null
+foreground { killall rpc.portmap }
+foreground { sleep 1 }
+foreground { killall -9 rpc.portmap }
