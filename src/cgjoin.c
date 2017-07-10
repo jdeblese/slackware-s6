@@ -11,8 +11,8 @@
 #define USAGE "cgjoin cgroup prog..."
 #define PREFIX "/sys/fs/cgroup/"
 #define PREFIXLEN 15
-#define SUFFIX "/tasks"
-#define SUFFIXLEN 6
+#define SUFFIX "/cgroup.procs"
+#define SUFFIXLEN 13
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {
