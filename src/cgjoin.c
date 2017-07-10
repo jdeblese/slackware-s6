@@ -5,9 +5,10 @@
 #include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/env.h>
+#include <skalibs/allreadwrite.h>
 #include <skalibs/djbunix.h>
 
-#define USAGE "cgmove cgroup prog..."
+#define USAGE "cgjoin cgroup prog..."
 #define PREFIX "/sys/fs/cgroup/"
 #define PREFIXLEN 15
 #define SUFFIX "/tasks"
@@ -17,8 +18,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   unsigned int len ;
   int fd;
-  PROG = "cgmove" ;
-  if (argc < 4) strerr_dieusage(100, USAGE) ;
+  PROG = "cgjoin" ;
+  if (argc < 3) strerr_dieusage(100, USAGE) ;
   len = strlen(argv[1]) ;
   {
     char path[len + PREFIXLEN + SUFFIXLEN + 1] ;
