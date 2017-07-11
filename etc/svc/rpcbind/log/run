@@ -2,7 +2,7 @@
 
 multisubstitute {
   define LOGDIR /var/log/services/rpc/bind
-  define UID root
+  define UID bin
   define GID daemon }
 
 umask 077

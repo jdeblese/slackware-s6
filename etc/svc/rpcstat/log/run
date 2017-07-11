@@ -2,8 +2,8 @@
 
 multisubstitute {
   define LOGDIR /var/log/services/rpc/stat
-  define UID root
-  define GID daemon }
+  define UID rpc
+  define GID rpc }
 
 umask 077
 
