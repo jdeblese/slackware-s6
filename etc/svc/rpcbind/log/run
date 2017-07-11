@@ -1,7 +1,7 @@
 #!/bin/execlineb -P
 
 multisubstitute {
-  define LOGDIR /var/log/services/rpc/stat
+  define LOGDIR /var/log/services/rpc/bind
   define UID root
   define GID daemon }
 

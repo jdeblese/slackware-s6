@@ -1,0 +1,12 @@
+#!/bin/execlineb -P
+
+# redirect stderr to stdout
+fdmove -c 2 1
+
+# check for executable
+if -x 111 { test -x /sbin/rpcbind }
+
+# Join cgroup
+cgjoin s6/daemon
+
+/sbin/rpcbind -f

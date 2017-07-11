@@ -1,11 +1,18 @@
 #!/bin/execlineb -P
 
-fdmove -c 2 1
 define SRVDIR /svc
 
-if { s6-svwait -u ${SRVDIR}/rpcportmap }
-if -x 111 { test -x /sbin/rpc.statd }
-ifelse -n { ps axc | grep -q rpc.statd }
-  { /sbin/rpc.statd --foreground --no-syslog }
-  echo "rpc.statd is already running"
+# redirect stderr to stdout
+fdmove -c 2 1
 
+# check for executable
+if -x 111 { test -x /usr/sbin/rpc.statd }
+
+# check for rpcbind up
+if { s6-svwait -u ${SRVDIR}/rpcbind }
+
+# join s6 daemon cgroup
+cgjoin s6/daemon
+
+# launch daemon
+/usr/sbin/rpc.statd --foreground --no-syslog
