@@ -1,0 +1,33 @@
+#!/bin/sh
+# Start/stop/restart the secure shell server:
+
+. /etc/s6-init/s6shfunc
+
+sshd_start() {
+  s6_start incron
+}
+
+sshd_stop() {
+  s6_stop incron
+}
+
+sshd_restart() {
+  # send TERM signal, s6 will automatically restart
+  s6_signal -t incron
+
+}
+
+case "$1" in
+'start')
+  sshd_start
+  ;;
+'stop')
+  sshd_stop
+  ;;
+'restart')
+  sshd_restart
+  ;;
+*)
+  echo "usage $0 start|stop|restart"
+esac
+
