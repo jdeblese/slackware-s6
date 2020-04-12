@@ -1,0 +1,25 @@
+cgjoin(8) -- Join the current process to a cgroup
+==========================
+
+## SYNOPSIS
+
+`cgjoin` <cgroup> <prog> ...
+
+## DESCRIPTION
+
+The `cgjoin` command will add the current PID to the task list of <cgroup> and
+then exec into <prog>. If the the given group does not exist under
+/sys/fs/cgroup, it will be created.
+
+## OPTIONS
+
+  * <cgroup>:
+    Name of the cgroup to join. `cgjoin` will search for the cgroup under /sys/fs/cgroup.
+  * <prog>:
+    The program to exec into once the cgroup has been joined
+
+## RETURN VALUES
+
+  * 100 and prints usage on insufficient number of arguments
+  * 100 if cannot open the relevant `cgroup.procs` task file
+  * 111 if exec into <prog> fails
