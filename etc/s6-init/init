@@ -21,11 +21,11 @@ foreground { if -n { test -e /dev/null } /usr/bin/mknod -m 666 /dev/null c 1 3 }
 foreground { if -n { test -e /dev/console } /usr/bin/mknod -m 600 /dev/console c 5 1 }
 
 # This should be printed to the console
-if { s6-echo "init stage 1" }
+foreground { s6-echo "init stage 1" }
 
 
 # Mount a tmpfs on /svc
-if { s6-echo "Mount /svc" }
+foreground { s6-echo "Mount /svc" }
 # Need to do some work here, as filesystem is read-only but we need an /svc directory
 foreground { if -n { test -d ${DIR} }
   foreground { s6-echo "  Creating /svc, requires temporarily remounting /" }
@@ -35,7 +35,7 @@ foreground { if -n { test -d ${DIR} }
 if { /sbin/mount -vt tmpfs -o size=16m tmpfs ${DIR} }
 
 # Copy essential services
-if { s6-echo "Create console getty and catch-all logger..." }
+foreground { s6-echo "Create console getty and catch-all logger..." }
 if { cp -a ${SRC}/.s6-svscan ${DIR} }
 if { cp -a ${SRC}/console ${DIR} }
 if { cp -a ${SRC}/svscanlog ${DIR} }
