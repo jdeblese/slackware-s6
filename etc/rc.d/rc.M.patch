@@ -1,0 +1,41 @@
+--- /etc/rc.d/rc.M	2016-05-04 21:27:00.000000000 -0700
++++ rc.M	2020-04-22 07:17:52.688155312 -0700
+@@ -11,6 +11,8 @@
+ #		Heavily modified by Patrick Volkerding <volkerdi@slackware.com>
+ #
+ 
++. /etc/s6-init/s6shfunc
++
+ # Tell the viewers what's going to happen.
+ echo "Going multiuser..."
+ 
+@@ -252,9 +254,7 @@
+ # hard drives and reports any problems.  Note some devices (which aren't
+ # smart, I guess ;) will hang if probed by smartd, so it's commented out
+ # by default.
+-#if [ -x /usr/sbin/smartd ]; then
+-#  /usr/sbin/smartd
+-#fi
++# s6_start smart
+ 
+ # Monitor the UPS with genpowerd.
+ # To use this, uncomment this section and edit your settings in
+@@ -279,16 +279,10 @@
+ fi
+ 
+ # Start crond (Dillon's crond):
+-# If you want cron to actually log activity to /var/log/cron, then change
+-# -l notice to -l info to increase the logging level.
+-if [ -x /usr/sbin/crond ]; then
+-  /usr/sbin/crond -l notice
+-fi
++s6_start cron
+ 
+ # Start atd (manages jobs scheduled with 'at'):
+-if [ -x /usr/sbin/atd ]; then
+-  /usr/sbin/atd -b 15 -l 1
+-fi
++s6_start at
+ 
+ # Slackware-Mini-Quota-HOWTO:
+ # To really activate quotas, you'll need to add 'usrquota' and/or 'grpquota' to
