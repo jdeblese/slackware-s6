@@ -22,6 +22,10 @@ if [ -x /sbin/ldconfig ]; then
   /sbin/ldconfig &
 fi
 
+# Screen blanks after 15 minutes idle time, and powers down in one hour
+# if the kernel supports APM or ACPI power management:
+/bin/setterm -blank 15 -powersave powerdown -powerdown 60
+
 # Set the hostname.
 if [ -r /etc/HOSTNAME ]; then
   /bin/hostname $(cat /etc/HOSTNAME | cut -f1 -d .)
@@ -97,9 +101,21 @@ if [ -x /etc/rc.d/rc.inet1 ]; then
   . /etc/rc.d/rc.inet1
 fi
 
-# Look for additional USB/SCSI/IEEE1394/etc devices on multiple LUNs:
-if [ -x /etc/rc.d/rc.scanluns ]; then
-  . /etc/rc.d/rc.scanluns
+# Start D-Bus:
+if [ -x /etc/rc.d/rc.messagebus ]; then
+  sh /etc/rc.d/rc.messagebus start
+fi
+
+# Start Bluetooth:
+if [ -x /etc/rc.d/rc.bluetooth ]; then
+  sh /etc/rc.d/rc.bluetooth start
+fi
+
+# Start wicd or networkmanager:
+if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
+  sh /etc/rc.d/rc.wicd start
+elif [ -x /etc/rc.d/rc.networkmanager ]; then
+  sh /etc/rc.d/rc.networkmanager start
 fi
 
 # Start networking daemons:
@@ -107,8 +123,13 @@ if [ -x /etc/rc.d/rc.inet2 ]; then
   . /etc/rc.d/rc.inet2
 fi
 
+# Look for additional USB/SCSI/IEEE1394/etc devices on multiple LUNs:
+if [ -x /etc/rc.d/rc.scanluns ]; then
+  . /etc/rc.d/rc.scanluns
+fi
+
 # Mount any additional filesystem types that haven't already been mounted:
-mount -a -v 2> /dev/null | grep -v "already mounted"
+mount -a -v 2> /dev/null | grep -v -e "already mounted" -e "ignored" | cut -f 1 -d : | tr -d ' ' | while read dev ; do mount | grep "${dev} " ; done
 
 # Start the Control Script for automounter:
 if [ -x /etc/rc.d/rc.autofs ]; then
@@ -134,19 +155,18 @@ fi
 chmod 755 / 2> /dev/null
 chmod 1777 /tmp /var/tmp
 
-# Start APM or ACPI daemon.
-# If APM is enabled in the kernel, start apmd:
-if [ -e /proc/apm ]; then
-  if [ -x /usr/sbin/apmd ]; then
-    echo "Starting APM daemon:  /usr/sbin/apmd"
-    /usr/sbin/apmd
-  fi
-elif [ -x /etc/rc.d/rc.acpid ]; then # otherwise, start acpid:
+# Start ACPI daemon.
+if [ -x /etc/rc.d/rc.acpid ]; then
   . /etc/rc.d/rc.acpid start
 fi
 
+# Enable CPU frequency scaling:
+if [ -x /etc/rc.d/rc.cpufreq ]; then
+  . /etc/rc.d/rc.cpufreq start
+fi
+
 # Update any existing icon cache files:
-if find /usr/share/icons 2> /dev/null | grep -q icon-theme.cache ; then
+if find /usr/share/icons -maxdepth 2 2> /dev/null | grep -q icon-theme.cache ; then
   for theme_dir in /usr/share/icons/* ; do
     if [ -r ${theme_dir}/icon-theme.cache ]; then
       echo "Updating icon-theme.cache in ${theme_dir}..."
@@ -167,11 +187,6 @@ if [ -x /usr/bin/update-mime-database -a -d /usr/share/mime ]; then
   /usr/bin/update-mime-database /usr/share/mime 1> /dev/null 2> /dev/null &
 fi
 
-# Start D-Bus:
-if [ -x /etc/rc.d/rc.messagebus ]; then
-  sh /etc/rc.d/rc.messagebus start
-fi
-
 # Start console-kit-daemon:
 if [ -x /etc/rc.d/rc.consolekit ]; then
   sh /etc/rc.d/rc.consolekit start
@@ -182,31 +197,33 @@ if [ -x /etc/rc.d/rc.hald ]; then
   sh /etc/rc.d/rc.hald start
 fi
 
-# Start Bluetooth:
-if [ -x /etc/rc.d/rc.bluetooth ]; then
-  sh /etc/rc.d/rc.bluetooth start
-fi
-
-# Start wicd or networkmanager:
-if [ -x /etc/rc.d/rc.wicd -a -x /usr/sbin/wicd ]; then
-  sh /etc/rc.d/rc.wicd start
-elif [ -x /etc/rc.d/rc.networkmanager ]; then
-  sh /etc/rc.d/rc.networkmanager start
+# Start system-wide PulseAudio daemon (not recommended, nor required in
+# order to use PulseAudio -- see the script for details):
+if [ -x /etc/rc.d/rc.pulseaudio ]; then
+  . /etc/rc.d/rc.pulseaudio start
 fi
 
 # These GTK+/pango files need to be kept up to date for
 # proper input method, pixbuf loaders, and font support.
 if [ -x /usr/bin/update-gtk-immodules ]; then
-  /usr/bin/update-gtk-immodules --verbose
+  echo "Updating gtk.immodules:"
+  echo "  /usr/bin/update-gtk-immodules &"
+  /usr/bin/update-gtk-immodules > /dev/null 2>&1 &
 fi
 if [ -x /usr/bin/update-gdk-pixbuf-loaders ]; then
-  /usr/bin/update-gdk-pixbuf-loaders --verbose
+  echo "Updating gdk-pixbuf.loaders:"
+  echo "  /usr/bin/update-gdk-pixbuf-loaders &"
+  /usr/bin/update-gdk-pixbuf-loaders > /dev/null 2>&1 &
 fi
 if [ -x /usr/bin/update-pango-querymodules ]; then
-  /usr/bin/update-pango-querymodules --verbose
+  echo "Updating pango.modules:"
+  echo "  /usr/bin/update-pango-querymodules &"
+  /usr/bin/update-pango-querymodules > /dev/null 2>&1 &
 fi
 if [ -x /usr/bin/glib-compile-schemas ]; then
-  /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas >/dev/null 2>&1
+  echo "Compiling GSettings XML schema files:"
+  echo "  /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas &"
+  /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas >/dev/null 2>&1 &
 fi
 
 # Start dnsmasq, a simple DHCP/DNS server:
