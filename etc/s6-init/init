@@ -88,10 +88,6 @@ background
   # foreground { redirfd -c 1 /etc/mtab grep "^devpts" /proc/mounts }
   # foreground { redirfd -c 1 /etc/mtab grep "^cgroup_root" /proc/mounts }
 
-  # Screen blanks after 15 minutes idle time, and powers down in one hour
-  # if the kernel supports APM or ACPI power management:
-  foreground { /bin/setterm -blank 15 -powersave powerdown -powerdown 60 }
-
   # Start initial terminal
   if { cp -a ${SRC}/tty1 ${DIR} }
   if { s6-svscanctl -a ${DIR} }
