@@ -15,6 +15,7 @@ fdmove -c 2 1
 # Start a sync in the background as the shutdown gets going
 background { /bin/sync }
 
+foreground { echo "Executing cleanup script." }
 foreground { /etc/s6-init/cleanup }
 
 foreground { echo "Syncing disks." }
@@ -82,8 +83,8 @@ foreground { /bin/sync }
 foreground { /bin/sleep 3 }
 
 # This is to ensure all processes have completed on SMP machines:
-foreground { echo "Waiting for child processes to exit." }
-wait { }
+foreground { echo "Waiting 5 seconds for child processes to exit." }
+/bin/wait -t 5000 -I { }
 
 # FIXME genpowered?
 #if [ -x /sbin/genpowerd ]; then
