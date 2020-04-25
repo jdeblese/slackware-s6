@@ -20,7 +20,7 @@ src/cgjoin: src/cgjoin.o
 clean:
 	rm -f ${OBJECTS} src/cgjoin
 
-TOCOPY=$(filter-out %~,$(shell find etc/s6-init -type f -name "[a-zA-Z]*" ) $(shell find etc/svc -type f -name "[a-zA-Z]*" ))
+TOCOPY=$(filter-out %~ %.patch,$(wildcard etc/rc.d/*) $(wildcard etc/s6-init/*) $(shell find etc/svc -type f -name "[a-zA-Z]*" ))
 DEST=$(addprefix ${DESTDIR}/,${TOCOPY})
 
 install: src/cgjoin install-svscan ${DEST} ${DESTDIR}/etc/rc.d/rc.M install-doc
