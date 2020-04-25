@@ -42,7 +42,29 @@ foreground { /bin/umount -v -a -t no,proc,sysfs,tmpfs }
 foreground { echo "Remounting root filesystem read-only." }
 foreground { /bin/mount -v -n -o remount,ro / }
 
+# This never hurts:
+foreground { /bin/sync }
+
 # FIXME cryptsetup?
+#if [ -f /etc/crypttab -a -x /sbin/cryptsetup ]; then
+#  cat /etc/crypttab | grep -v "^#" | grep -v "^$" | while read line; do
+#    # NOTE: we only support LUKS formatted volumes (except for swap)!
+#    LUKS=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f1 -d' ')
+#    DEV=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f2 -d' ')
+#    OPTS=$(echo $line | tr '\t' ' ' | tr -s ' ' | cut -f4 -d' ')
+#    if /sbin/cryptsetup isLuks $DEV 2>/dev/null ; then
+#      echo "Locking LUKS crypt volume '${LUKS}':"
+#      /sbin/cryptsetup luksClose ${LUKS}
+#    elif echo $OPTS | grep -wq swap ; then
+#      # If any of the volumes was used as encrypted swap,
+#      # then run mkswap on the underlying device -
+#      # in case other Linux installations on this computer should use it:
+#      echo "Erasing encrypted swap '${LUKS}' and restoring normal swap on ${DEV}:"
+#      /sbin/cryptsetup remove ${LUKS}
+#      mkswap $DEV
+#    fi
+#  done
+#fi
 
 # Deactivate LVM volume groups:
 foreground {
@@ -64,6 +86,21 @@ foreground { echo "Waiting for child processes to exit." }
 wait { }
 
 # FIXME genpowered?
+#if [ -x /sbin/genpowerd ]; then
+#  # See if this is a powerfail situation:
+#  if /bin/egrep -q "FAIL|SCRAM" /etc/upsstatus 2> /dev/null ; then
+#    # Signal UPS to shut off the inverter:
+#    /sbin/genpowerd -k
+#    if [ ! $? = 0 ]; then
+#      echo
+#      echo "There was an error signaling the UPS."
+#      echo "Perhaps you need to edit /etc/genpowerd.conf to configure"
+#      echo "the serial line and UPS type."
+#      # Wasting 15 seconds of precious power:
+#      /bin/sleep 15
+#    fi
+#  fi
+#fi
 
 # Reboot, halt or poweroff the machine, depending on the parameter
 # that was given to the script.

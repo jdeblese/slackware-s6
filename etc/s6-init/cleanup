@@ -18,19 +18,36 @@ if [ -x /etc/rc.d/rc.sysvinit ]; then
   . /etc/rc.d/rc.sysvinit
 fi
 
+# Set linefeed mode to avoid staircase effect.
+# SKIP done in calling s6-init/finish function
+
 # Save the system time to the hardware clock using hwclock --systohc.
+# This will also create or update the timestamps in /etc/adjtime.
 if [ -x /sbin/hwclock ]; then
   # Check for a broken motherboard RTC clock (where ioports for rtc are
   # unknown) to prevent hwclock causing a hang:
-  if ! grep -q -w rtc /proc/ioports ; then
+  if ! grep -q " : rtc" /proc/ioports ; then
     CLOCK_OPT="--directisa"
   fi
-  if grep -q "^UTC" /etc/hardwareclock 2> /dev/null ; then
+  if [ /etc/adjtime -nt /etc/hardwareclock ]; then
+    if grep -q "^LOCAL" /etc/adjtime ; then
+      echo "Saving system time to the hardware clock (localtime)."
+    else
+      echo "Saving system time to the hardware clock (UTC)."
+    fi
+    /sbin/hwclock $CLOCK_OPT --systohc
+  elif grep -q "^UTC" /etc/hardwareclock 2> /dev/null ; then
     echo "Saving system time to the hardware clock (UTC)."
+    if [ ! -r /etc/adjtime ]; then
+      echo "Creating system time correction file /etc/adjtime."
+    fi
     /sbin/hwclock $CLOCK_OPT --utc --systohc
   else
     echo "Saving system time to the hardware clock (localtime)."
-    /sbin/hwclock  $CLOCK_OPT --localtime --systohc
+    if [ ! -r /etc/adjtime ]; then
+      echo "Creating system time correction file /etc/adjtime."
+    fi
+    /sbin/hwclock $CLOCK_OPT --localtime --systohc
   fi
 fi
 
@@ -82,7 +99,7 @@ fi
 # Kill any processes (typically gam) that would otherwise prevent
 # unmounting NFS volumes:
 unset FUSER_DELAY
-for dir in $(/bin/mount | grep 'type nfs' | cut -d ' ' -f 3 ) ; do
+for dir in $(/bin/mount | grep 'type nfs ' | cut -d ' ' -f 3 ) ; do
   echo "Killing processes holding NFS mount $dir open..."
   # Background this to prevent fuser from also blocking shutdown:
   /usr/bin/fuser -k -m $dir &
@@ -94,8 +111,8 @@ if [ ! -z "$FUSER_DELAY" ]; then
 fi
 
 # Unmount any NFS, SMB, or CIFS filesystems:
-echo "Unmounting remote filesystems."
-/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs
+echo "Unmounting remote filesystems:"
+/bin/umount -v -a -l -f -r -t nfs,smbfs,cifs | tr -d ' ' | grep successfully | sed "s/:successfullyunmounted/ has been successfully unmounted./g"
 
 # Try to shut down pppd:
 PS="$(ps ax)"
@@ -178,3 +195,17 @@ else
   /bin/dd if=/dev/urandom of=/etc/random-seed count=1 bs=512 2> /dev/null
 fi
 /bin/chmod 600 /etc/random-seed
+
+# Before unmounting file systems write a reboot or halt record to wtmp.
+# SKIP this is done in s6-init/finish
+
+# Turn off swap:
+# SKIP this is done in s6-init/finish
+
+# Stop cgmanager and cgproxy:
+# FIXME can this be done before swapoff?
+if [ -x /etc/rc.d/rc.cgmanager ]; then
+  sh /etc/rc.d/rc.cgmanager stop
+fi
+
+# all further steps done in s6-init/finish
