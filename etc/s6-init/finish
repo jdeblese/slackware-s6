@@ -17,35 +17,9 @@ background { /bin/sync }
 
 foreground { /etc/s6-init/cleanup }
 
-# Even if s6-svscan properly brought all the services down
-# before exec'ing into this script, users might have launched
-# background nohup processes, so we have to kill everything.
-
-foreground { echo "Sending all processes the TERM signal." }
-foreground { s6-nuke -th }
-foreground { sleep 2 }
-foreground { echo "Sending all processes the KILL signal." }
-foreground { s6-nuke -k }
-
-# Here, s6-nuke sends a SIGKILL to every process on the system.
-# It kills itself, but not before the SIGKILL has been broadcast.
-# The "foreground" process runs as process 1, so it survives,
-# and execs into the rest of the script when s6-nuke dies.
-
-# Reap the huge army of zombies we just created
-foreground { echo "Waiting for child processes to exit." }
-wait { }
-
 foreground { echo "Syncing disks." }
 foreground { /bin/sync } # yes, it helps.
 foreground { echo "Unmounting disks." }
-
-# Turn off quotas
-foreground {
-  if { /bin/grep -q quota /etc/fstab }
-  if { test -x /sbin/quotaoff }
-  foreground { echo "Turning off filesystem quotas." }
-  /sbin/quotaoff -a }
 
 # Log to WTMP
 foreground { echo "Log ${1} to wtmp." }
@@ -94,4 +68,4 @@ wait { }
 # Reboot, halt or poweroff the machine, depending on the parameter
 # that was given to the script.
 foreground { echo "\nPerforming "${1}"." }
-s6-${1} -f
+${1} -df

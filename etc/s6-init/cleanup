@@ -151,6 +151,24 @@ if [ -x /etc/rc.d/rc.udev ]; then
   sh /etc/rc.d/rc.udev force-stop
 fi
 
+# Kill all remaining processes.
+OMITPIDS="$(for p in $(pgrep mdmon); do echo -o $p; done)" # Don't kill mdmon
+if [ ! "$1" = "fast" ]; then
+  echo "Sending all processes the SIGTERM signal."
+  /sbin/killall5 -15 $OMITPIDS
+  /bin/sleep 5
+  echo "Sending all processes the SIGKILL signal."
+  /sbin/killall5 -9 $OMITPIDS
+fi
+
+# Try to turn off quota.
+if /bin/grep -q quota /etc/fstab ; then
+  if [ -x /sbin/quotaoff ]; then
+    echo "Turning off filesystem quotas."
+    /sbin/quotaoff -a
+  fi
+fi
+
 # Carry a random seed between reboots.
 echo "Saving random seed from /dev/urandom in /etc/random-seed."
 # Use the pool size from /proc, or 4096 bits:
