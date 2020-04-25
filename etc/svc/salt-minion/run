@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+
+fdmove -c 2 1
+
+# LOGLEVEL: One of: all, garbage, trace, debug, info, warning, error, quiet
+/usr/bin/salt-minion --pid-file==/var/run/salt-minion.pid --log-level=warning
