@@ -88,10 +88,6 @@ background
   # foreground { redirfd -c 1 /etc/mtab grep "^devpts" /proc/mounts }
   # foreground { redirfd -c 1 /etc/mtab grep "^cgroup_root" /proc/mounts }
 
-  # Start initial terminal
-  if { cp -a ${SRC}/tty1 ${DIR} }
-  if { s6-svscanctl -a ${DIR} }
-
   # Run multi-user setup, logging to file
   fdclose 1
   fdclose 2
