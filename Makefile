@@ -1,5 +1,5 @@
 CC=gcc
-LIBS=-lskarnet
+LIBS=-L/usr/lib64/skalibs -lskarnet
 
 CSOURCES=src/cgjoin.c
 OBJECTS=$(SOURCES:.c=.o)
