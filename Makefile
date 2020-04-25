@@ -20,10 +20,10 @@ src/cgjoin: src/cgjoin.o
 clean:
 	rm -f ${OBJECTS} src/cgjoin
 
-TOCOPY=$(shell find etc/ -type f -name "[a-zA-Z]*" )
+TOCOPY=$(filter-out %~,$(shell find etc/s6-init -type f -name "[a-zA-Z]*" ) $(shell find etc/svc -type f -name "[a-zA-Z]*" ))
 DEST=$(addprefix ${DESTDIR}/,${TOCOPY})
 
-install: ${DEST} ${DESTDIR}/etc/rc.d/rc.M install-doc
+install: src/cgjoin install-svscan ${DEST} ${DESTDIR}/etc/rc.d/rc.M install-doc
 	install -sD src/cgjoin ${DESTDIR}/bin/cgjoin
 
 install-doc:
@@ -33,5 +33,13 @@ install-doc:
 ${DEST}: ${DESTDIR}/%: %
 	install -D $< $@
 
-${DESTDIR}/etc/rc.d/rc.M: ${DESTDIR}/etc/rc.d/rc.M.patch
-	patch -d ${DESTDIR}/etc/rc.d < ${DESTDIR}/etc/rc.d/rc.M.patch
+${DESTDIR}/etc/rc.d/rc.M: etc/rc.d/rc.M.patch
+	patch -d ${DESTDIR}/etc/rc.d < etc/rc.d/rc.M.patch
+
+install-svscan: ${DESTDIR}/etc/svc/.s6-svscan ${DESTDIR}/etc/svc/.s6-svscan/finish ${DESTDIR}/etc/svc/.s6-svscan/crash
+${DESTDIR}/etc/svc/.s6-svscan:
+	mkdir -p ${DESTDIR}/etc/svc/.s6-svscan
+${DESTDIR}/etc/svc/.s6-svscan/finish: ${DESTDIR}/etc/s6-init/finish
+	ln -fs ${DESTDIR}/etc/s6-init/finish ${DESTDIR}/etc/svc/.s6-svscan/finish
+${DESTDIR}/etc/svc/.s6-svscan/crash: ${DESTDIR}/etc/s6-init/crash
+	ln -fs ${DESTDIR}/etc/s6-init/crash ${DESTDIR}/etc/svc/.s6-svscan/crash
