@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+JAVA_HOME=/usr/lib64/jdk1.8.0_181
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+NAME=elasticsearch
+DEFAULT=/etc/default/$NAME
+PID_FILE=/var/run/$NAME.pid
+
+# overwrite settings from default file
+if [ -f "$DEFAULT" ]; then
+	. "$DEFAULT"
+fi
+
+#if [ -f "$PID_FILE" ]; then
+#    `cat $PID_FILE | xargs kill -9`
+#    if [ $? -eq 1 ]; then
+#        echo "$DESC is not running but pid file exists, cleaning up"
+#    elif [ $? -eq 3 ]; then
+#        PID="`cat $PID_FILE`"
+#        echo "Failed to stop $NAME (pid $PID)"
+#        exit 1
+#    fi
+    rm -f "$PID_FILE"
+#fi

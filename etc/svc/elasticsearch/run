@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# /etc/rc.d/rc.elasticsearch -- startup script Slackware Linux for Elasticsearch
+#
+# Written by Daniel Romero <infoslack@gmail.com>.
+#
+# This script requires a 'elasticsearch' user/group to exist before running.
+# The recommended UID/GID is 280. You can create these like so:
+# groupadd -g 280 elasticsearch
+# useradd -u 280 -g elasticsearch -s /bin/sh elasticsearch
+
+set -e
+
+# set params
+JAVA_HOME=/usr/lib64/jdk1.8.0_181
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:$JAVA_HOME/bin:$JAVA_HOME/jre/bin
+NAME=elasticsearch
+DEFAULT=/etc/default/$NAME
+ES_HOME=/usr/share/$NAME
+ES_USER=$NAME
+ES_GROUP=$NAME
+LOG_DIR=/var/log/$NAME
+DATA_DIR=/var/lib/$NAME
+WORK_DIR=$DATA_DIR/data
+CONF_DIR=/etc/$NAME
+CONF_FILE=$CONF_DIR/elasticsearch.yml
+PID_FILE=/var/run/$NAME.pid
+DAEMON=$ES_HOME/bin/$NAME
+MAX_OPEN_FILES=65535
+DAEMON_OPTS="-p $PID_FILE --default.config=$CONF_FILE --default.path.home=$ES_HOME --default.path.logs=$LOG_DIR --default.path.data=$DATA_DIR --default.path.work=$WORK_DIR --default.path.conf=$CONF_DIR"
+
+# overwrite settings from default file
+if [ -f "$DEFAULT" ]; then
+	. "$DEFAULT"
+fi
+
+# Check DAEMON exists
+test -x $DAEMON || exit 0
+
+touch "$PID_FILE" && chown "$ES_USER":"$ES_GROUP" "$PID_FILE"
+export JAVA_HOME PATH
+exec s6-applyuidgid -u `id -u $ES_USER` -g `id -g $ES_GROUP` $DAEMON $DAEMON_OPTS

@@ -1,0 +1,34 @@
+#!/bin/sh
+# Start/stop/restart salt minion
+
+. /etc/s6-init/s6shfunc
+
+# Start salt-minion:
+salt_minion_start() {
+  s6_start salt-minion
+}
+
+# Stop salt-minion:
+salt_minion_stop() {
+  s6_stop salt-minion
+}
+
+# Restart salt-minion:
+salt_minion_restart() {
+  # send TERM signal, s6 will automatically restart
+  s6_signal -t salt-minion
+}
+
+case "$1" in
+'start')
+  salt_minion_start
+  ;;
+'stop')
+  salt_minion_stop
+  ;;
+'restart')
+  salt_minion_restart
+  ;;
+*)
+  echo "usage $0 start|stop|restart"
+esac
