@@ -25,3 +25,7 @@ s6_wait() {
 s6_signal() {
   s6-svc $1 /svc/$2
 }
+
+s6_stat() {
+  s6-svstat /svc/$1
+}
