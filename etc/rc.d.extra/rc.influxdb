@@ -1,0 +1,57 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          influxd
+# Required-Start:    $all
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start the InfluxDB process
+### END INIT INFO
+
+. /etc/s6-init/s6shfunc
+
+function start() {
+    s6_start influxdb
+}
+
+function stop() {
+    s6_stop influxdb
+}
+
+function restart() {
+    # Restart the daemon.
+    stop
+    start
+}
+
+function status() {
+    s6_stat influxdb
+}
+
+case $1 in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart)
+        restart
+        ;;
+
+    status)
+        status
+        ;;
+
+    version)
+        $DAEMON version
+        ;;
+
+    *)
+        # For invalid arguments, print the usage message.
+        echo "Usage: $0 {start|stop|restart|status|version}"
+        exit 2
+        ;;
+esac

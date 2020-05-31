@@ -1,0 +1,32 @@
+#!/bin/execlineb -P
+
+export DEFAULT /etc/default/influxdb
+# export INFLUXD_OPTS
+export NAME influxdb
+export USER influxdb
+export GROUP influxdb
+export DAEMON /usr/bin/influxd
+export CONFIG /etc/influxdb/influxdb.conf
+export PIDFILE /var/run/influxdb/influxd.pid
+export OPEN_FILE_LIMIT 65536
+export STDOUT /dev/null
+export STDERR /var/log/influxdb/influxd.log
+
+multisubstitute {
+	importas OPEN_FILE_LIMIT OPEN_FILE_LIMIT
+	importas USER USER
+	importas CONFIG CONFIG
+	importas INFLUXD_OPTS INFLUXD_OPTS
+}
+
+fdmove -c 2 1
+
+# Bump the file limits, before launching the daemon. These will
+# carry over to launched processes.
+s6-softlimit -o $OPEN_FILE_LIMIT
+
+# switch to desired user
+s6-setuidgid $USER
+
+#$DAEMON -pidfile $PIDFILE -config $CONFIG $INFLUXD_OPTS
+/usr/bin/influxd -config $CONFIG $INFLUXD_OPTS

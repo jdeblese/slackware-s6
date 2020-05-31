@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# rc.d script for collectd
+#
+# Thanks to miklos from slacky.eu
+
+. /etc/s6-init/s6shfunc
+
+start() {
+    s6_start collectd
+}
+
+stop() {
+    s6_stop collectd
+}
+
+status() {
+    s6_stat collectd
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    restart
+}
+
+force_reload() {
+    restart
+}
+
+case "$1" in
+    start)
+        $1
+        ;;
+    stop)
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    status)
+        $1
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac
+exit $?
+
