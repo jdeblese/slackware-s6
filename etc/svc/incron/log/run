@@ -2,8 +2,8 @@
 
 multisubstitute {
   define LOGDIR /var/log/services/incron
-  define UID root
-  define GID root }
+  define UID daemon
+  define GID daemon }
 
 umask 077
 
