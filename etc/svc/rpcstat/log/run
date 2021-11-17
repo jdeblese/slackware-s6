@@ -13,11 +13,11 @@ foreground { mkdir -p ${LOGDIR} }
 # Set safer permissions
 foreground { chown -R ${UID}:${GID} ${LOGDIR} }
 
+# join cgroup
+cgjoin unified/daemon/s6-log
+
 # Start logger as ${UID}
 s6-setuidgid ${UID}
-
-# join cgroup
-cgjoin s6/logging
 
 # Keep 3 logs
 # Maximum log size 1 MiB

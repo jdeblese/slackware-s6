@@ -15,6 +15,9 @@ foreground {
 # Set safer permissions
 foreground { chown -R ${UID}:${GID} ${LOGDIR} }
 
+# join cgroup
+cgjoin unified/daemon/s6-log
+
 # Start logger as ${UID}
 s6-setuidgid ${UID}
 
